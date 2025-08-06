@@ -46,7 +46,42 @@ def my_func(X,wdir):
             outputs.append(os.path.exists(os.path.join(manifest.simulation_output_filepath,my_site,'finished.txt')))
         if all(outputs):#os.path.exists(manifest.simulation_output_filepath,my_site): 
             for my_site in sites:
-                Y = compute_scores_across_site(my_site)
+                Y = compute_scores_across_site(my_site, coord_df)
+            break
+        time.sleep(120)   
+    
+    return(Y)
+    
+    
+def my_func_per_site(X,wdir,coord_df):
+    site = coord_df.at['site','value']
+    sites =[site]
+    n_sims = int(coord_df.at['nSims','value'])
+    # Supply parameters to X
+    get_eradication(manifest.use_local_eradication)
+    param_key=pd.read_csv("parameter_key.csv")
+    df = pd.DataFrame({'parameter':[], 'unit_value': [], 'emod_value':[], 'type':[], 'param_set':[]})
+    i=1
+    for x in X:
+        a = translate_parameters(param_key,x,i)
+        a['param_set'] = np.repeat(i,len(a))
+        i=i+1
+        df = pd.concat([df,a])
+    df.to_csv(f"{wdir}/translated_params.csv")
+  
+    for i, my_site in enumerate(sites):
+        if os.path.exists(os.path.join(manifest.simulation_output_filepath,my_site)):
+            shutil.rmtree(os.path.join(manifest.simulation_output_filepath,my_site))
+        submit_sim(site=my_site, nSims=n_sims, X=df)
+      
+  
+    while True:
+        outputs = []
+        for my_site in sites:
+            outputs.append(os.path.exists(os.path.join(manifest.simulation_output_filepath,my_site,'finished.txt')))
+        if all(outputs):#os.path.exists(manifest.simulation_output_filepath,my_site): 
+            for my_site in sites:
+                Y = compute_scores_across_site(my_site, coord_df)
             break
         time.sleep(120)   
     

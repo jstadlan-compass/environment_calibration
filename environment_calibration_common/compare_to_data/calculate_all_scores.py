@@ -23,7 +23,7 @@ sys.path.append("../../simulations")
 import manifest
 
 
-coord_df = load_coordinator_df(characteristic=False, set_index=True)
+#coord_df = load_coordinator_df(characteristic=False, set_index=True)
 
 #site = coord_df.at['site','value']
 

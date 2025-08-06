@@ -45,8 +45,7 @@ import manifest
 
 ##### EMODpy building blocks #####
 
-def set_param_fn(config):
-    coord_df=load_coordinator_df()
+def set_param_fn(config, coord_df):
     
     config = conf.set_team_defaults(config, manifest)
     # Add vector species to simulation
@@ -103,11 +102,10 @@ def update_sim_random_seed(simulation, value):
     return {"Run_Number": value}
 
 
-def add_outputs(task, site):
+def add_outputs(task, site, coord_df):
     """
     Requesting reports/outputs to the task.
     """
-    coord_df = load_coordinator_df(characteristic=False, set_index=True)
     simulation_years = int(coord_df.at['simulation_years','value'])
     sim_start_year = int(coord_df.at['simulation_start_year','value'])
     
@@ -271,12 +269,10 @@ set_simulation_scenario_for_matched_site = partial(set_simulation_scenario, csv_
 set_simulation_scenario_for_characteristic_site = partial(set_simulation_scenario, csv_path=manifest.sweep_sim_coordinator_path)
 
 
-def build_demog():
+def build_demog(coord_df):
     """
     This function builds a demographics input file for the DTK using emod_api.
-    """
-    coord_df = load_coordinator_df()
-    
+    """    
     demog= Demographics.from_template_node(lat=float(coord_df.at['lat','value']), 
                                            lon=float(coord_df.at['lon','value']), 
                                            pop=int(coord_df.at['pop','value']), 
@@ -292,8 +288,7 @@ def build_demog():
 ################################
 
 ##### Treatment Seeking - Symptomatic Malaria #####
-def add_health_seeking(camp,hs_df):
-    coord_df=load_coordinator_df()
+def add_health_seeking(camp,hs_df, coord_df):
     for r, row in hs_df.iterrows():
         sim_year=int(row['year'])-int(coord_df.at['simulation_start_year','value'])
         if sim_year >=0:
@@ -326,9 +321,8 @@ def add_nmf_hs(camp, hs_df, nmf_df):
         add_nmf_hs_from_file(camp, row, nmf_row)
 
 
-def add_nmf_hs_from_file(camp, row, nmf_row):
+def add_nmf_hs_from_file(camp, row, nmf_row, coord_df):
     if row['trigger'] == "NewClinicalCase":
-        coord_df=load_coordinator_df()
         sim_year=int(row['year'])-int(coord_df.at['simulation_start_year','value'])
         if sim_year >=0:
             sim_day=sim_year*365
@@ -493,8 +487,7 @@ def add_vaccdrug_smc(campaign,start_days: list, coverages: list,
             'total_smc_rounds': len(coverages)}
             
             
-def add_smc(camp,smc_df):
-    coord_df=load_coordinator_df(characteristic=False, set_index=True)
+def add_smc(camp,smc_df, coord_df):
     sim_start_yr = int(coord_df.at['simulation_start_year','value'])
     for r, row in smc_df.iterrows():
          smc_year=int(row['year']) - sim_start_yr
@@ -509,8 +502,7 @@ def add_smc(camp,smc_df):
 
 
 ##### ITNs with seasonal and age-dependent usage #####
-def add_itns(camp,itn_df,itn_age,itn_season):
-    coord_df=load_coordinator_df(characteristic=False, set_index=True)
+def add_itns(camp,itn_df,itn_age,itn_season, coord_df):
     sim_start_yr = int(coord_df.at['simulation_start_year','value'])
     itn_seasonal_usage = {"Times": list(itn_season['season_time']),
                           "Values":list(itn_season['season_usage'])}
@@ -588,8 +580,7 @@ def get_suite_id():
         return 0
       
       
-def generate_demographics():
-    coord_df=load_coordinator_df(characteristic=False, set_index=True)
+def generate_demographics(coord_df):
     site = coord_df.at['site','value']
     latitude=coord_df.at['lat','value']
     longitude=coord_df.at['lon','value']
@@ -618,11 +609,10 @@ def generate_demographics():
     return demog
   
 
-def extract_climate(flatten_temp=True):
+def extract_climate(coord_df, flatten_temp=True):
     import time
     from emodpy_malaria.weather import (generate_weather, weather_to_csv, WeatherVariable, 
                                         csv_to_weather)
-    coord_df=load_coordinator_df(characteristic=False, set_index=True)
     coord_df=coord_df[['value']]
     #print(coord_df)
     # ---| Request weather files |---
@@ -680,7 +670,7 @@ def extract_climate(flatten_temp=True):
 ##### Calibration parameter "plug-in" #####
 ###########################################
     
-def add_calib_param_func(simulation, calib_params, sets, hab_base = 1e8, const_base = 1e6):
+def add_calib_param_func(simulation, calib_params, sets, coord_df, hab_base = 1e8, const_base = 1e6):
     X = calib_params[calib_params['param_set'] == sets]
     X = X.reset_index(drop=True)
     # Temperature Shift: Ensure climate model is enabled before setting temperature offsets
@@ -690,7 +680,6 @@ def add_calib_param_func(simulation, calib_params, sets, hab_base = 1e8, const_b
     else:
         warnings.warn("Climate model is not enabled; skipping temperature offsets.")
     # Vectors
-    coord_df = load_coordinator_df(characteristic=False, set_index=True)
     # Load vector file
     vdf = pd.read_csv(os.path.join(manifest.input_files_path,coord_df.at['vector_filepath','value']))
     # Get list of species

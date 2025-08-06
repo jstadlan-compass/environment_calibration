@@ -27,9 +27,8 @@ sys.path.append("../../simulations")
 import manifest as manifest
 
 
-def compute_scores_across_site(site):
+def compute_scores_across_site(site, coord_df):
     # Compute all scores
-    coord_df = load_coordinator_df()
     incidence_agebin=float(coord_df.at['incidence_comparison_agebin','value'])
     prevalence_agebin=float(coord_df.at['prevalence_comparison_agebin','value'])
     scores = compute_all_scores(site,incidence_agebin=incidence_agebin,prevalence_agebin=prevalence_agebin)
