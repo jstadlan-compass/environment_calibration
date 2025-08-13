@@ -24,7 +24,6 @@ def run_simulation_for_site(site, exp_label, output_dir, calib_coord_path, param
     # Load calibration coordinator info for this site
     calib_coord = pd.read_csv(calib_coord_path).set_index("site")
     init_samples = int(calib_coord.at[site, "init_size"])
-    init_batches = int(calib_coord.at[site, "init_batches"])
 
     # Load parameter key
     param_key = pd.read_csv(param_key_path)
@@ -74,6 +73,8 @@ def run_simulation_for_site(site, exp_label, output_dir, calib_coord_path, param
     print(Y0_scores[["param_set", "total_score"]])
 
     Y0_scores.to_csv(os.path.join(wdir, "seed_points_scores.csv"), index=False)
+    
+    return Y0_scores
 
 # Example usage:
 if __name__ == "__main__":

@@ -21,7 +21,8 @@ sys.path.append("../environment_calibration_common")
 from clean_all import clean_analyzers, clean_logs, clean_COMPS_ID
 from translate_parameters import translate_parameters
 from helpers import load_coordinator_df
-from my_func import my_func as myFunc
+from my_func import my_func_per_site as myFuncPerSite
+
 sys.path.append("../environment_calibration_common/compare_to_data")
 from run_full_comparison import plot_allAge_prevalence,plot_incidence,compute_scores_across_site,save_rangeEIR,save_AnnualIncidence,plot_pfpr_microscopy 
 
@@ -70,13 +71,13 @@ class Problem:
         os.makedirs(os.path.relpath(f'{self.workdir}/'), exist_ok=True)
 
     # The input is a vector that contains multiple set of parameters to be evaluated
-    def __call__(self, X):
+    def __call__(self,X,coord_df):
         
         
         wdir=os.path.join(f"{self.workdir}/LF_{self.n}")
         os.makedirs(wdir,exist_ok=True)
             
-        Y0=myFunc(X,wdir)
+        Y0=myFuncPerSite(X,coord_df)
         # Clean up any non-score columns returned by myfunc
         ps = Y0['param_set']
         Y0 = Y0.filter(like='_score')

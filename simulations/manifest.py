@@ -16,6 +16,7 @@ os.makedirs(job_directory, exist_ok=True)
 input_files_path = PROJECT_DIR / "simulation_inputs"
 simulation_coordinator_path = input_files_path / "simulation_coordinator.csv"
 calibration_coordinator_path = input_files_path / "calibration_coordinator.csv"
+global_simulation_coordinator_path = input_files_path / "global_simulation_coordinator.csv"
 
 DOWNLOAD_DIR = CURRENT_DIR / "download" / "bin_230614_PT"
 # The script is going to use this to store the downloaded schema file. Create 'download' directory or change to your preferred (existing) location.
