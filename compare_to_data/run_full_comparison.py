@@ -31,7 +31,7 @@ def compute_scores_across_site(site, coord_df):
     # Compute all scores
     incidence_agebin=float(coord_df.at['incidence_comparison_agebin','value'])
     prevalence_agebin=float(coord_df.at['prevalence_comparison_agebin','value'])
-    scores = compute_all_scores(site,incidence_agebin=incidence_agebin,prevalence_agebin=prevalence_agebin)
+    scores = compute_all_scores(site,coord_df,incidence_agebin=incidence_agebin,prevalence_agebin=prevalence_agebin)
     # Load weighting rules
     weights = pd.read_csv(os.path.join(manifest.input_files_path,"weights.csv"),index_col=0)
     

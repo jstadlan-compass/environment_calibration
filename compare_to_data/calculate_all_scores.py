@@ -27,8 +27,6 @@ import manifest
 
 #site = coord_df.at['site','value']
 
-start_year = int(coord_df.at['simulation_start_year','value'])
-
 def load_case_data(site):
     case_df= pd.read_csv(os.path.join(manifest.base_reference_filepath,
                                       coord_df.at['incidence_comparison_reference','value']))
@@ -60,7 +58,7 @@ def prepare_inset_chart_data_EIR(site):
     ic = ic[ic['month']<=12]
     return(ic)  
   
-def compare_all_age_PCR_prevalence(site):
+def compare_all_age_PCR_prevalence(site, start_year):
     #### SCORE - Monthly PCR Parasite Prevalence ####
     #################################################
     ic = prepare_inset_chart_data_PCR(site)
@@ -136,7 +134,7 @@ def compute_incidence_likelihood(combined_df):
     #print(ll)
     return df #mean
 
-def compare_incidence_shape(site,agebin):
+def compare_incidence_shape(site,agebin, start_year):
     #### Load incidence data
     case_df = load_case_data(site)
     # filter to DS_Name
@@ -203,19 +201,21 @@ def compare_annual_incidence(site,agebin):
     score2['intensity_score'] = score2.apply(lambda row: exp(abs(row['Inc']-target)/target), axis=1)
     return score2
 
-def compute_all_scores(site,incidence_agebin=100,prevalence_agebin=100):
-    # merge unweighted scores into one dataframe, and return
+def compute_all_scores(site,coord_df,incidence_agebin=100,prevalence_agebin=100):
     
+    start_year = int(coord_df.at['simulation_start_year','value'])
+    
+    # merge unweighted scores into one dataframe, and return
     scores = check_EIR_threshold(site)
     scores = scores[['Sample_ID','eir_score']]
     if(coord_df.at['incidence_comparison','value']):
-        score1 = compare_incidence_shape(site,agebin=incidence_agebin)
+        score1 = compare_incidence_shape(site,agebin=incidence_agebin,start_year=start_year)
         scores = scores.merge(score1[['Sample_ID','shape_score']], how='outer', on='Sample_ID')
         score2 = compare_annual_incidence(site,agebin=incidence_agebin)
         scores = scores.merge(score2[['Sample_ID','intensity_score']], how='outer', on='Sample_ID')
     if(coord_df.at['prevalence_comparison','value']):
         if(coord_df.at['prevalence_comparison_diagnostic','value']=="PCR"):
-            score3 = compare_all_age_PCR_prevalence(site)
+            score3 = compare_all_age_PCR_prevalence(site, start_year)
             scores = scores.merge(score3[['Sample_ID','prevalence_score']], how='outer', on='Sample_ID')
         if(coord_df.at['prevalence_comparison_diagnostic','value']=="Microscopy"):
             score3 = compare_PfPR_prevalence(site,agebin=prevalence_agebin)
