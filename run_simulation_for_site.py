@@ -76,15 +76,15 @@ def run_simulation_for_site(site, exp_label, output_dir, calib_coord_path, param
     
     return Y0_scores
 
-# Example usage:
+# Example usage:fr
 if __name__ == "__main__":
     # You can use manifest for these arguments, or specify them directly
     Site = manifest.SITE
     exp_label = manifest.EXPERIMENT_LABEL
     output_dir = f"output/{exp_label}"
     calib_coord_path = manifest.calibration_coordinator_path
-    param_key_path = "parameter_key.csv"
-    gs_coord_path = "global_simulation_coordinator.csv"
+    param_key_path = manifest.parameter_key_path
+    gs_coord_path = manifest.global_simulation_coordinator_path
     weights_path = "simulation_inputs/weights.csv"
 
     run_simulation_for_site(Site, exp_label, output_dir, calib_coord_path, param_key_path, gs_coord_path, weights_path)

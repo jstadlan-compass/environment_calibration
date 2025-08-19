@@ -2,9 +2,10 @@
 # standard packages
 import numpy as np
 import pandas as pd
+import manifest as manifest
 
 #### Read in Parameter Key
-key_path = 'parameter_key.csv'
+key_path = manifest.parameter_key_path
 parameter_key = pd.read_csv(key_path)
 
 #### Define Parameter Translator
