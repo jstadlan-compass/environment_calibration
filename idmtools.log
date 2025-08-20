@@ -117,3 +117,105 @@ Initializing SlurmPlatform with:
 }
 2025-08-20 01:00:19,457.457 /home/ykc2461/.local/lib/python3.9/site-packages/idmtools/core/exceptions.py:89 idmtools_error_handler [ERROR] (913991,139964526236672) - build_demog() missing 1 required positional argument: 'coord_df'
 NoneType: None
+2025-08-20 01:21:49,328.328 /home/ykc2461/.local/lib/python3.9/site-packages/idmtools/config/idm_config_parser.py:213 _load_config_file [WARNING] (935014,140017326511104) - /!\ WARNING: File 'idmtools.ini' Not Found! For details on how to configure idmtools, see https://docs.idmod.org/projects/idmtools/en/v2.1.0/configuration.html for details on how to configure idmtools.
+2025-08-20 01:21:50,422.422 /home/ykc2461/.local/lib/python3.9/site-packages/idmtools/core/platform_factory.py:312 _display_inputs [VERBOSE] (935014,140017326511104) - 
+Initializing SlurmPlatform with:
+2025-08-20 01:21:50,422.422 /home/ykc2461/.local/lib/python3.9/site-packages/idmtools/core/platform_factory.py:313 _display_inputs [VERBOSE] (935014,140017326511104) - {
+   "mode": "local",
+   "job_directory": "/gpfs/home/ykc2461/environment_calibration/experiments",
+   "modules": [
+      "singularity"
+   ],
+   "account": "b1139",
+   "partition": "b1139",
+   "time": "6:00:00",
+   "mem": 2500,
+   "max_running_jobs": 250
+}
+2025-08-20 01:22:09,904.904 /home/ykc2461/.local/lib/python3.9/site-packages/idmtools/core/exceptions.py:89 idmtools_error_handler [ERROR] (935014,140017326511104) - add_outputs() missing 1 required positional argument: 'coord_df'
+NoneType: None
+2025-08-20 01:24:51,912.912 /home/ykc2461/.local/lib/python3.9/site-packages/idmtools/config/idm_config_parser.py:213 _load_config_file [WARNING] (940133,139888910484480) - /!\ WARNING: File 'idmtools.ini' Not Found! For details on how to configure idmtools, see https://docs.idmod.org/projects/idmtools/en/v2.1.0/configuration.html for details on how to configure idmtools.
+2025-08-20 01:24:52,735.735 /home/ykc2461/.local/lib/python3.9/site-packages/idmtools/core/platform_factory.py:312 _display_inputs [VERBOSE] (940133,139888910484480) - 
+Initializing SlurmPlatform with:
+2025-08-20 01:24:52,736.736 /home/ykc2461/.local/lib/python3.9/site-packages/idmtools/core/platform_factory.py:313 _display_inputs [VERBOSE] (940133,139888910484480) - {
+   "mode": "local",
+   "job_directory": "/gpfs/home/ykc2461/environment_calibration/experiments",
+   "max_running_jobs": 250,
+   "mem": 2500,
+   "account": "b1139",
+   "time": "6:00:00",
+   "partition": "b1139",
+   "modules": [
+      "singularity"
+   ]
+}
+2025-08-20 01:25:01,781.781 /home/ykc2461/.local/lib/python3.9/site-packages/idmtools/core/exceptions.py:89 idmtools_error_handler [ERROR] (940133,139888910484480) - [Errno 2] No such file or directory: '/gpfs/home/ykc2461/environment_calibration/reference_datasets/Nanoro_dhs_pfpr.csv'
+NoneType: None
+2025-08-20 09:53:47,786.786 /home/ykc2461/.local/lib/python3.9/site-packages/idmtools/config/idm_config_parser.py:213 _load_config_file [WARNING] (3463708,140115154842624) - /!\ WARNING: File 'idmtools.ini' Not Found! For details on how to configure idmtools, see https://docs.idmod.org/projects/idmtools/en/v2.1.0/configuration.html for details on how to configure idmtools.
+2025-08-20 09:53:49,453.453 /home/ykc2461/.local/lib/python3.9/site-packages/idmtools/core/platform_factory.py:312 _display_inputs [VERBOSE] (3463708,140115154842624) - 
+Initializing SlurmPlatform with:
+2025-08-20 09:53:49,454.454 /home/ykc2461/.local/lib/python3.9/site-packages/idmtools/core/platform_factory.py:313 _display_inputs [VERBOSE] (3463708,140115154842624) - {
+   "mode": "local",
+   "job_directory": "/gpfs/home/ykc2461/environment_calibration/experiments",
+   "modules": [
+      "singularity"
+   ],
+   "time": "6:00:00",
+   "account": "b1139",
+   "partition": "b1139",
+   "max_running_jobs": 250,
+   "mem": 2500
+}
+2025-08-20 09:53:58,011.11 /home/ykc2461/.local/lib/python3.9/site-packages/idmtools/core/exceptions.py:89 idmtools_error_handler [ERROR] (3463708,140115154842624) - cannot convert float NaN to integer
+NoneType: None
+2025-08-20 09:58:27,193.193 /home/ykc2461/.local/lib/python3.9/site-packages/idmtools/config/idm_config_parser.py:213 _load_config_file [WARNING] (3486685,140312533554176) - /!\ WARNING: File 'idmtools.ini' Not Found! For details on how to configure idmtools, see https://docs.idmod.org/projects/idmtools/en/v2.1.0/configuration.html for details on how to configure idmtools.
+2025-08-20 09:58:28,671.671 /home/ykc2461/.local/lib/python3.9/site-packages/idmtools/core/platform_factory.py:312 _display_inputs [VERBOSE] (3486685,140312533554176) - 
+Initializing SlurmPlatform with:
+2025-08-20 09:58:28,672.672 /home/ykc2461/.local/lib/python3.9/site-packages/idmtools/core/platform_factory.py:313 _display_inputs [VERBOSE] (3486685,140312533554176) - {
+   "mode": "local",
+   "job_directory": "/gpfs/home/ykc2461/environment_calibration/experiments",
+   "max_running_jobs": 250,
+   "partition": "b1139",
+   "account": "b1139",
+   "modules": [
+      "singularity"
+   ],
+   "mem": 2500,
+   "time": "6:00:00"
+}
+2025-08-20 09:58:37,927.927 /home/ykc2461/.local/lib/python3.9/site-packages/idmtools/core/exceptions.py:89 idmtools_error_handler [ERROR] (3486685,140312533554176) - cannot convert float NaN to integer
+NoneType: None
+2025-08-20 10:03:04,667.667 /home/ykc2461/.local/lib/python3.9/site-packages/idmtools/config/idm_config_parser.py:213 _load_config_file [WARNING] (3515750,139663155041280) - /!\ WARNING: File 'idmtools.ini' Not Found! For details on how to configure idmtools, see https://docs.idmod.org/projects/idmtools/en/v2.1.0/configuration.html for details on how to configure idmtools.
+2025-08-20 10:03:05,965.965 /home/ykc2461/.local/lib/python3.9/site-packages/idmtools/core/platform_factory.py:312 _display_inputs [VERBOSE] (3515750,139663155041280) - 
+Initializing SlurmPlatform with:
+2025-08-20 10:03:05,966.966 /home/ykc2461/.local/lib/python3.9/site-packages/idmtools/core/platform_factory.py:313 _display_inputs [VERBOSE] (3515750,139663155041280) - {
+   "mode": "local",
+   "job_directory": "/gpfs/home/ykc2461/environment_calibration/experiments",
+   "mem": 2500,
+   "max_running_jobs": 250,
+   "modules": [
+      "singularity"
+   ],
+   "time": "6:00:00",
+   "account": "b1139",
+   "partition": "b1139"
+}
+2025-08-20 10:03:12,836.836 /home/ykc2461/.local/lib/python3.9/site-packages/idmtools/core/exceptions.py:89 idmtools_error_handler [ERROR] (3515750,139663155041280) - cannot convert float NaN to integer
+NoneType: None
+2025-08-20 10:09:35,346.346 /home/ykc2461/.local/lib/python3.9/site-packages/idmtools/config/idm_config_parser.py:213 _load_config_file [WARNING] (3551058,140082831430656) - /!\ WARNING: File 'idmtools.ini' Not Found! For details on how to configure idmtools, see https://docs.idmod.org/projects/idmtools/en/v2.1.0/configuration.html for details on how to configure idmtools.
+2025-08-20 10:09:36,793.793 /home/ykc2461/.local/lib/python3.9/site-packages/idmtools/core/platform_factory.py:312 _display_inputs [VERBOSE] (3551058,140082831430656) - 
+Initializing SlurmPlatform with:
+2025-08-20 10:09:36,794.794 /home/ykc2461/.local/lib/python3.9/site-packages/idmtools/core/platform_factory.py:313 _display_inputs [VERBOSE] (3551058,140082831430656) - {
+   "mode": "local",
+   "job_directory": "/gpfs/home/ykc2461/environment_calibration/experiments",
+   "modules": [
+      "singularity"
+   ],
+   "partition": "b1139",
+   "mem": 2500,
+   "time": "6:00:00",
+   "account": "b1139",
+   "max_running_jobs": 250
+}
+2025-08-20 10:09:44,527.527 /home/ykc2461/.local/lib/python3.9/site-packages/idmtools/core/exceptions.py:89 idmtools_error_handler [ERROR] (3551058,140082831430656) - Currently the callback has 2 required parameters and callback has 5 parameters but there were 1 arguments passed.
+NoneType: None

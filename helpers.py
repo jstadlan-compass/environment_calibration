@@ -106,9 +106,13 @@ def add_outputs(task, site, coord_df=None):
     """
     Requesting reports/outputs to the task.
     """
+    coord_df.to_csv('what_happened_to_coord_df.csv', index=False)
+    
+    
     simulation_years = int(coord_df.at['simulation_years','value'])
     sim_start_year = int(coord_df.at['simulation_start_year','value'])
     
+    print(sim_start_year)
     # By default, inset_chart is included 
     # change the value 'config.parameters.Enable_Default_Reporting = 1' to 0 to turn it OFF #
     # This covers the case where PCR prevalence is desired and is currently used to check EIR
