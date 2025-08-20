@@ -120,7 +120,7 @@ def add_outputs(task, site, coord_df=None):
     ### Incidence-related reports ###     
     if(coord_df.at['incidence_comparison','value']):
         incidence_df = pd.read_csv(os.path.join(manifest.base_reference_filepath,coord_df.at['incidence_comparison_reference','value']))
-        incidence_df=incidence_df[incidence_df['DS_Name']==site]                  
+        incidence_df=incidence_df[incidence_df['site']==site]                  
 
         incidence_agebins = sorted([float(a) for a in incidence_df['age'].unique()])
         first_year = int(incidence_df['year'].min()) - sim_start_year
@@ -154,7 +154,7 @@ def add_outputs(task, site, coord_df=None):
         if(coord_df.at['prevalence_comparison_diagnostic','value']!="PCR"):
             prevalence_df = pd.read_csv(os.path.join(manifest.base_reference_filepath,
                                                     coord_df.at['prevalence_comparison_reference','value']))
-            prevalence_df=prevalence_df[prevalence_df['DS_Name']==site]                                                 
+            prevalence_df=prevalence_df[prevalence_df['site']==site]                                                 
             prevalence_agebins =  sorted([float(a) for a in prevalence_df['age'].unique()])
             first_year = int(prevalence_df['year'].min()) - sim_start_year
             last_year = int(prevalence_df['year'].max()) - sim_start_year + 1
