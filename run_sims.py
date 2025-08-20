@@ -20,7 +20,7 @@ sys.path.append("../simulations")
 import manifest as manifest
 
 def submit_sim(site=None, nSims=1, characteristic=False, priority=manifest.priority, my_manifest=manifest,
-               not_use_singularity=False, X=None, coord_df=coord_df):
+               not_use_singularity=False, X=None, coord_df=None):
     """
     This function is designed to be a parameterized version of the sequence of things we do 
     every time we run an emod experiment. 
@@ -101,7 +101,7 @@ def _create_task(my_manifest,site, coord_df):
                                   campaign_builder=None,
                                   schema_path=str(my_manifest.schema_file),
                                   param_custom_cb=partial(set_param_fn,coord_df=coord_df),
-                                  demog_builder=build_demog,
+                                  demog_builder=partial(build_demog,coord_df=coord_df),
                                   )
 
     task.config.parameters.Birth_Rate_Dependence = "FIXED_BIRTH_RATE"
