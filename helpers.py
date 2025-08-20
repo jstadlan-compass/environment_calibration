@@ -674,7 +674,7 @@ def extract_climate(coord_df, flatten_temp=True):
 ##### Calibration parameter "plug-in" #####
 ###########################################
     
-def add_calib_param_func(simulation, calib_params, sets, coord_df, hab_base = 1e8, const_base = 1e6):
+def add_calib_param_func(simulation, calib_params, sets, coord_df=None, hab_base = 1e8, const_base = 1e6):
     X = calib_params[calib_params['param_set'] == sets]
     X = X.reset_index(drop=True)
     # Temperature Shift: Ensure climate model is enabled before setting temperature offsets

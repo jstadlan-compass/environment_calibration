@@ -30,7 +30,7 @@ def submit_sim(site=None, nSims=1, characteristic=False, priority=manifest.prior
     platform = Platform("SLURM_LOCAL", job_directory=manifest.job_directory, partition='b1139', time='6:00:00',
                             account='b1139', modules=['singularity'], max_running_jobs=250, mem=2500)
     print("successfully created platform")
-    experiment = create_exp(characteristic, nSims, site, my_manifest, not_use_singularity,platform, X ,coord_df)
+    experiment = create_exp(characteristic, nSims, site, my_manifest, not_use_singularity,platform, X ,coord_df=coord_df)
     print("successfully created experiment")
 
     # The last step is to call run() on the ExperimentManager to run the simulations.
@@ -59,13 +59,13 @@ def add_calib_params(task, param, value, ptype):
         
     return {param: value}
 
-def create_exp(characteristic, nSims, site, my_manifest, not_use_singularity, platform, X, coord_df):
-    task = _create_task(my_manifest, site, coord_df)
+def create_exp(characteristic, nSims, site, my_manifest, not_use_singularity, platform, X, coord_df=None):
+    task = _create_task(my_manifest, site, coord_df=coord_df)
 
     if not not_use_singularity:
         task.set_sif(manifest.SIF_PATH, platform)
         #task.set_sif(my_manifest.sif_id.as_posix())
-    builder, exp_name = _create_builder(task,characteristic, nSims, site, X)
+    builder, exp_name = _create_builder(task,characteristic, nSims, site, X, coord_df=coord_df)
     # create experiment from builder
     print("created builder")
     experiment = Experiment.from_builder(builder, task, name=exp_name)
@@ -73,7 +73,7 @@ def create_exp(characteristic, nSims, site, my_manifest, not_use_singularity, pl
     return experiment
 
 
-def _create_builder(task,characteristic, nSims, site, X):
+def _create_builder(task,characteristic, nSims, site, X, coord_df=None):
     # Create simulation sweep with builder
     builder = SimulationBuilder()
     exp_name = "validation_" + site
@@ -86,13 +86,13 @@ def _create_builder(task,characteristic, nSims, site, X):
     else:
         builder.add_sweep_definition(set_simulation_scenario_for_matched_site, [site])
     print("setting scenario")
-    builder.add_sweep_definition(partial(add_calib_param_func, calib_params=X), np.unique(X['param_set']))
+    builder.add_sweep_definition(partial(add_calib_param_func, calib_params=X, coord_df=coord_df), np.unique(X['param_set']))
     print("sweep builder params")
     print("made builder")
     return builder, exp_name
 
 
-def _create_task(my_manifest,site, coord_df):
+def _create_task(my_manifest,site, coord_df=None):
     # create EMODTask
     print("Creating EMODTask (from files)...")
     task = EMODTask.from_default2(config_path="my_config.json",
