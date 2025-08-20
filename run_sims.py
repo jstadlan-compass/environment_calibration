@@ -101,7 +101,7 @@ def _create_task(my_manifest,site, coord_df):
                                   campaign_builder=None,
                                   schema_path=str(my_manifest.schema_file),
                                   param_custom_cb=partial(set_param_fn,coord_df=coord_df),
-                                  demog_builder=build_demog,
+                                  demog_builder=partial(build_demog,coord_df=coord_df),
                                   )
 
     task.config.parameters.Birth_Rate_Dependence = "FIXED_BIRTH_RATE"
