@@ -219,3 +219,95 @@ Initializing SlurmPlatform with:
 }
 2025-08-20 10:09:44,527.527 /home/ykc2461/.local/lib/python3.9/site-packages/idmtools/core/exceptions.py:89 idmtools_error_handler [ERROR] (3551058,140082831430656) - Currently the callback has 2 required parameters and callback has 5 parameters but there were 1 arguments passed.
 NoneType: None
+2025-08-20 10:36:02,380.380 /home/ykc2461/.local/lib/python3.9/site-packages/idmtools/config/idm_config_parser.py:213 _load_config_file [WARNING] (3723062,140015461741568) - /!\ WARNING: File 'idmtools.ini' Not Found! For details on how to configure idmtools, see https://docs.idmod.org/projects/idmtools/en/v2.1.0/configuration.html for details on how to configure idmtools.
+2025-08-20 10:36:03,930.930 /home/ykc2461/.local/lib/python3.9/site-packages/idmtools/core/platform_factory.py:312 _display_inputs [VERBOSE] (3723062,140015461741568) - 
+Initializing SlurmPlatform with:
+2025-08-20 10:36:03,931.931 /home/ykc2461/.local/lib/python3.9/site-packages/idmtools/core/platform_factory.py:313 _display_inputs [VERBOSE] (3723062,140015461741568) - {
+   "mode": "local",
+   "job_directory": "/gpfs/home/ykc2461/environment_calibration/experiments",
+   "account": "b1139",
+   "max_running_jobs": 250,
+   "time": "6:00:00",
+   "partition": "b1139",
+   "mem": 2500,
+   "modules": [
+      "singularity"
+   ]
+}
+2025-08-20 10:36:11,530.530 /home/ykc2461/.local/lib/python3.9/site-packages/idmtools/core/exceptions.py:89 idmtools_error_handler [ERROR] (3723062,140015461741568) - add_health_seeking() missing 1 required positional argument: 'coord_df'
+NoneType: None
+2025-08-20 10:45:37,811.811 /home/ykc2461/.local/lib/python3.9/site-packages/idmtools/config/idm_config_parser.py:213 _load_config_file [WARNING] (3759103,140408826086400) - /!\ WARNING: File 'idmtools.ini' Not Found! For details on how to configure idmtools, see https://docs.idmod.org/projects/idmtools/en/v2.1.0/configuration.html for details on how to configure idmtools.
+2025-08-20 10:45:39,270.270 /home/ykc2461/.local/lib/python3.9/site-packages/idmtools/core/platform_factory.py:312 _display_inputs [VERBOSE] (3759103,140408826086400) - 
+Initializing SlurmPlatform with:
+2025-08-20 10:45:39,272.272 /home/ykc2461/.local/lib/python3.9/site-packages/idmtools/core/platform_factory.py:313 _display_inputs [VERBOSE] (3759103,140408826086400) - {
+   "mode": "local",
+   "job_directory": "/gpfs/home/ykc2461/environment_calibration/experiments",
+   "max_running_jobs": 250,
+   "mem": 2500,
+   "modules": [
+      "singularity"
+   ],
+   "time": "6:00:00",
+   "account": "b1139",
+   "partition": "b1139"
+}
+2025-08-20 10:46:34,359.359 /gpfs/home/ykc2461/environments/torch_env/lib/python3.9/site-packages/idmtools_platform_slurm/platform_operations/experiment_operations.py:142 platform_run_item [INFO] (3759103,140408826086400) - job_directory: /gpfs/home/ykc2461/environment_calibration/experiments
+2025-08-20 10:46:34,360.360 /gpfs/home/ykc2461/environments/torch_env/lib/python3.9/site-packages/idmtools_platform_slurm/platform_operations/experiment_operations.py:143 platform_run_item [INFO] (3759103,140408826086400) - suite: 82cd58f1-d7f4-4f4f-8b8b-b5612dc3ab2c
+2025-08-20 10:46:34,361.361 /gpfs/home/ykc2461/environments/torch_env/lib/python3.9/site-packages/idmtools_platform_slurm/platform_operations/experiment_operations.py:144 platform_run_item [INFO] (3759103,140408826086400) - experiment: aa5fd5fe-22d9-4e92-991d-15dbd512f6a7
+2025-08-20 10:46:34,363.363 /gpfs/home/ykc2461/environments/torch_env/lib/python3.9/site-packages/idmtools_platform_slurm/platform_operations/experiment_operations.py:304 post_run_item [INFO] (3759103,140408826086400) - Slurm Job Ids (1):
+2025-08-20 10:46:34,363.363 /gpfs/home/ykc2461/environments/torch_env/lib/python3.9/site-packages/idmtools_platform_slurm/platform_operations/experiment_operations.py:305 post_run_item [INFO] (3759103,140408826086400) -    1736078
+2025-08-20 10:46:34,364.364 /gpfs/home/ykc2461/environments/torch_env/lib/python3.9/site-packages/idmtools_platform_slurm/platform_operations/experiment_operations.py:307 post_run_item [INFO] (3759103,140408826086400) - 
+You may try the following command to check simulations running status: 
+  idmtools slurm /gpfs/home/ykc2461/environment_calibration/experiments status --exp-id aa5fd5fe-22d9-4e92-991d-15dbd512f6a7
+2025-08-20 10:51:40,043.43 /home/ykc2461/.local/lib/python3.9/site-packages/idmtools/core/exceptions.py:89 idmtools_error_handler [ERROR] (3759103,140408826086400) - 
+NoneType: None
+2025-08-20 10:52:21,859.859 /home/ykc2461/.local/lib/python3.9/site-packages/idmtools/config/idm_config_parser.py:213 _load_config_file [WARNING] (3786217,139770818913280) - /!\ WARNING: File 'idmtools.ini' Not Found! For details on how to configure idmtools, see https://docs.idmod.org/projects/idmtools/en/v2.1.0/configuration.html for details on how to configure idmtools.
+2025-08-20 10:52:23,177.177 /home/ykc2461/.local/lib/python3.9/site-packages/idmtools/core/platform_factory.py:312 _display_inputs [VERBOSE] (3786217,139770818913280) - 
+Initializing SlurmPlatform with:
+2025-08-20 10:52:23,178.178 /home/ykc2461/.local/lib/python3.9/site-packages/idmtools/core/platform_factory.py:313 _display_inputs [VERBOSE] (3786217,139770818913280) - {
+   "mode": "local",
+   "job_directory": "/gpfs/home/ykc2461/environment_calibration/experiments",
+   "mem": 2500,
+   "max_running_jobs": 250,
+   "modules": [
+      "singularity"
+   ],
+   "account": "b1139",
+   "partition": "b1139",
+   "time": "6:00:00"
+}
+2025-08-20 10:53:19,795.795 /gpfs/home/ykc2461/environments/torch_env/lib/python3.9/site-packages/idmtools_platform_slurm/platform_operations/experiment_operations.py:142 platform_run_item [INFO] (3786217,139770818913280) - job_directory: /gpfs/home/ykc2461/environment_calibration/experiments
+2025-08-20 10:53:19,796.796 /gpfs/home/ykc2461/environments/torch_env/lib/python3.9/site-packages/idmtools_platform_slurm/platform_operations/experiment_operations.py:143 platform_run_item [INFO] (3786217,139770818913280) - suite: 81d3033f-f531-4f08-aaac-679a74ef7c59
+2025-08-20 10:53:19,796.796 /gpfs/home/ykc2461/environments/torch_env/lib/python3.9/site-packages/idmtools_platform_slurm/platform_operations/experiment_operations.py:144 platform_run_item [INFO] (3786217,139770818913280) - experiment: c168060e-3662-42aa-9dc3-bcc4e0e1b0b3
+2025-08-20 10:53:19,799.799 /gpfs/home/ykc2461/environments/torch_env/lib/python3.9/site-packages/idmtools_platform_slurm/platform_operations/experiment_operations.py:304 post_run_item [INFO] (3786217,139770818913280) - Slurm Job Ids (1):
+2025-08-20 10:53:19,799.799 /gpfs/home/ykc2461/environments/torch_env/lib/python3.9/site-packages/idmtools_platform_slurm/platform_operations/experiment_operations.py:305 post_run_item [INFO] (3786217,139770818913280) -    1736592
+2025-08-20 10:53:19,799.799 /gpfs/home/ykc2461/environments/torch_env/lib/python3.9/site-packages/idmtools_platform_slurm/platform_operations/experiment_operations.py:307 post_run_item [INFO] (3786217,139770818913280) - 
+You may try the following command to check simulations running status: 
+  idmtools slurm /gpfs/home/ykc2461/environment_calibration/experiments status --exp-id c168060e-3662-42aa-9dc3-bcc4e0e1b0b3
+2025-08-20 11:22:42,097.97 /home/ykc2461/.local/lib/python3.9/site-packages/idmtools/core/exceptions.py:89 idmtools_error_handler [ERROR] (3786217,139770818913280) - 
+NoneType: None
+2025-08-20 11:23:20,932.932 /home/ykc2461/.local/lib/python3.9/site-packages/idmtools/config/idm_config_parser.py:213 _load_config_file [WARNING] (3900571,140440894522368) - /!\ WARNING: File 'idmtools.ini' Not Found! For details on how to configure idmtools, see https://docs.idmod.org/projects/idmtools/en/v2.1.0/configuration.html for details on how to configure idmtools.
+2025-08-20 11:23:22,242.242 /home/ykc2461/.local/lib/python3.9/site-packages/idmtools/core/platform_factory.py:312 _display_inputs [VERBOSE] (3900571,140440894522368) - 
+Initializing SlurmPlatform with:
+2025-08-20 11:23:22,243.243 /home/ykc2461/.local/lib/python3.9/site-packages/idmtools/core/platform_factory.py:313 _display_inputs [VERBOSE] (3900571,140440894522368) - {
+   "mode": "local",
+   "job_directory": "/gpfs/home/ykc2461/environment_calibration/experiments",
+   "mem": 2500,
+   "max_running_jobs": 250,
+   "account": "b1139",
+   "partition": "b1139",
+   "modules": [
+      "singularity"
+   ],
+   "time": "6:00:00"
+}
+2025-08-20 11:23:33,371.371 /gpfs/home/ykc2461/environments/torch_env/lib/python3.9/site-packages/idmtools_platform_slurm/platform_operations/experiment_operations.py:142 platform_run_item [INFO] (3900571,140440894522368) - job_directory: /gpfs/home/ykc2461/environment_calibration/experiments
+2025-08-20 11:23:33,373.373 /gpfs/home/ykc2461/environments/torch_env/lib/python3.9/site-packages/idmtools_platform_slurm/platform_operations/experiment_operations.py:143 platform_run_item [INFO] (3900571,140440894522368) - suite: 65c89351-a310-45ab-a2a7-42f9a6051c72
+2025-08-20 11:23:33,373.373 /gpfs/home/ykc2461/environments/torch_env/lib/python3.9/site-packages/idmtools_platform_slurm/platform_operations/experiment_operations.py:144 platform_run_item [INFO] (3900571,140440894522368) - experiment: 4426508a-6c4f-4869-bca6-eb62c5df482c
+2025-08-20 11:23:33,377.377 /gpfs/home/ykc2461/environments/torch_env/lib/python3.9/site-packages/idmtools_platform_slurm/platform_operations/experiment_operations.py:304 post_run_item [INFO] (3900571,140440894522368) - Slurm Job Ids (1):
+2025-08-20 11:23:33,378.378 /gpfs/home/ykc2461/environments/torch_env/lib/python3.9/site-packages/idmtools_platform_slurm/platform_operations/experiment_operations.py:305 post_run_item [INFO] (3900571,140440894522368) -    1737521
+2025-08-20 11:23:33,378.378 /gpfs/home/ykc2461/environments/torch_env/lib/python3.9/site-packages/idmtools_platform_slurm/platform_operations/experiment_operations.py:307 post_run_item [INFO] (3900571,140440894522368) - 
+You may try the following command to check simulations running status: 
+  idmtools slurm /gpfs/home/ykc2461/environment_calibration/experiments status --exp-id 4426508a-6c4f-4869-bca6-eb62c5df482c
+2025-08-20 11:30:24,705.705 /home/ykc2461/.local/lib/python3.9/site-packages/idmtools/core/exceptions.py:89 idmtools_error_handler [ERROR] (3900571,140440894522368) - 
+NoneType: None
