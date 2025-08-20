@@ -8,8 +8,8 @@ SITE='Nanoro'
 EXPERIMENT_LABEL='sample_experiment'
 
 CURRENT_DIR = Path(__file__).resolve().parent
-PROJECT_DIR = CURRENT_DIR.parent
-
+#PROJECT_DIR = CURRENT_DIR.parent
+PROJECT_DIR = CURRENT_DIR
 job_directory = PROJECT_DIR / 'experiments'
 os.makedirs(job_directory, exist_ok=True)
 
@@ -27,7 +27,7 @@ plugins_folder = DOWNLOAD_DIR / "reporter_plugins"
 # Create 'Assets' directory or change to a path you prefer. idmtools will upload files found here.
 assets_input_dir = CURRENT_DIR / "Assets"
 # analyzed_ouptut_path = PROJECT_DIR / "EMOD_validation_recalibration" / "simulation_output"
-comps_id_folder = CURRENT_DIR / "COMPS_ID"
+comps_id_folder = CURRENT_DIR / "simulations" / "COMPS_ID"
 suite_id_file = comps_id_folder / 'Suite'
 version_file = comps_id_folder / "version.txt"
 eradication_found = comps_id_folder / 'eradication_found'

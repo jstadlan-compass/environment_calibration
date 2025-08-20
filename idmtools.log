@@ -1,0 +1,85 @@
+2025-08-19 23:36:18,037.37 /home/ykc2461/.local/lib/python3.9/site-packages/idmtools/config/idm_config_parser.py:213 _load_config_file [WARNING] (818130,140077145302016) - /!\ WARNING: File 'idmtools.ini' Not Found! For details on how to configure idmtools, see https://docs.idmod.org/projects/idmtools/en/v2.1.0/configuration.html for details on how to configure idmtools.
+2025-08-19 23:36:19,035.35 /home/ykc2461/.local/lib/python3.9/site-packages/idmtools/core/platform_factory.py:312 _display_inputs [VERBOSE] (818130,140077145302016) - 
+Initializing SlurmPlatform with:
+2025-08-19 23:36:19,036.36 /home/ykc2461/.local/lib/python3.9/site-packages/idmtools/core/platform_factory.py:313 _display_inputs [VERBOSE] (818130,140077145302016) - {
+   "mode": "local",
+   "job_directory": "/gpfs/home/ykc2461/experiments",
+   "modules": [
+      "singularity"
+   ],
+   "mem": 2500,
+   "account": "b1139",
+   "partition": "b1139",
+   "time": "6:00:00",
+   "max_running_jobs": 250
+}
+2025-08-19 23:36:37,760.760 /home/ykc2461/.local/lib/python3.9/site-packages/idmtools/core/exceptions.py:89 idmtools_error_handler [ERROR] (818130,140077145302016) - no such column: "size" - should this be a string literal in single-quotes?
+NoneType: None
+2025-08-20 00:10:33,431.431 /home/ykc2461/.local/lib/python3.9/site-packages/idmtools/config/idm_config_parser.py:213 _load_config_file [WARNING] (860645,140041263203328) - /!\ WARNING: File 'idmtools.ini' Not Found! For details on how to configure idmtools, see https://docs.idmod.org/projects/idmtools/en/v2.1.0/configuration.html for details on how to configure idmtools.
+2025-08-20 00:10:34,407.407 /home/ykc2461/.local/lib/python3.9/site-packages/idmtools/core/platform_factory.py:312 _display_inputs [VERBOSE] (860645,140041263203328) - 
+Initializing SlurmPlatform with:
+2025-08-20 00:10:34,407.407 /home/ykc2461/.local/lib/python3.9/site-packages/idmtools/core/platform_factory.py:313 _display_inputs [VERBOSE] (860645,140041263203328) - {
+   "mode": "local",
+   "job_directory": "/gpfs/home/ykc2461/environment_calibration/experiments",
+   "modules": [
+      "singularity"
+   ],
+   "mem": 2500,
+   "account": "b1139",
+   "time": "6:00:00",
+   "partition": "b1139",
+   "max_running_jobs": 250
+}
+2025-08-20 00:10:51,340.340 /home/ykc2461/.local/lib/python3.9/site-packages/idmtools/core/exceptions.py:89 idmtools_error_handler [ERROR] (860645,140041263203328) - no such column: "size" - should this be a string literal in single-quotes?
+NoneType: None
+2025-08-20 00:13:00,289.289 /home/ykc2461/.local/lib/python3.9/site-packages/idmtools/config/idm_config_parser.py:213 _load_config_file [WARNING] (864417,139784281166848) - /!\ WARNING: File 'idmtools.ini' Not Found! For details on how to configure idmtools, see https://docs.idmod.org/projects/idmtools/en/v2.1.0/configuration.html for details on how to configure idmtools.
+2025-08-20 00:13:01,208.208 /home/ykc2461/.local/lib/python3.9/site-packages/idmtools/core/platform_factory.py:312 _display_inputs [VERBOSE] (864417,139784281166848) - 
+Initializing SlurmPlatform with:
+2025-08-20 00:13:01,208.208 /home/ykc2461/.local/lib/python3.9/site-packages/idmtools/core/platform_factory.py:313 _display_inputs [VERBOSE] (864417,139784281166848) - {
+   "mode": "local",
+   "job_directory": "/gpfs/home/ykc2461/environment_calibration/experiments",
+   "partition": "b1139",
+   "time": "6:00:00",
+   "mem": 2500,
+   "max_running_jobs": 250,
+   "account": "b1139",
+   "modules": [
+      "singularity"
+   ]
+}
+2025-08-20 00:13:18,453.453 /home/ykc2461/.local/lib/python3.9/site-packages/idmtools/core/exceptions.py:89 idmtools_error_handler [ERROR] (864417,139784281166848) - no such column: "size" - should this be a string literal in single-quotes?
+NoneType: None
+2025-08-20 00:26:58,736.736 /home/ykc2461/.local/lib/python3.9/site-packages/idmtools/config/idm_config_parser.py:213 _load_config_file [WARNING] (880040,140227525972992) - /!\ WARNING: File 'idmtools.ini' Not Found! For details on how to configure idmtools, see https://docs.idmod.org/projects/idmtools/en/v2.1.0/configuration.html for details on how to configure idmtools.
+2025-08-20 00:26:59,726.726 /home/ykc2461/.local/lib/python3.9/site-packages/idmtools/core/platform_factory.py:312 _display_inputs [VERBOSE] (880040,140227525972992) - 
+Initializing SlurmPlatform with:
+2025-08-20 00:26:59,726.726 /home/ykc2461/.local/lib/python3.9/site-packages/idmtools/core/platform_factory.py:313 _display_inputs [VERBOSE] (880040,140227525972992) - {
+   "mode": "local",
+   "job_directory": "/gpfs/home/ykc2461/environment_calibration/experiments",
+   "modules": [
+      "singularity"
+   ],
+   "mem": 2500,
+   "account": "b1139",
+   "time": "6:00:00",
+   "partition": "b1139",
+   "max_running_jobs": 250
+}
+2025-08-20 00:27:19,345.345 /home/ykc2461/.local/lib/python3.9/site-packages/idmtools/core/exceptions.py:89 idmtools_error_handler [ERROR] (880040,140227525972992) - no such column: "size" - should this be a string literal in single-quotes?
+NoneType: None
+2025-08-20 00:29:02,527.527 /home/ykc2461/.local/lib/python3.9/site-packages/idmtools/config/idm_config_parser.py:213 _load_config_file [WARNING] (882329,140191876375552) - /!\ WARNING: File 'idmtools.ini' Not Found! For details on how to configure idmtools, see https://docs.idmod.org/projects/idmtools/en/v2.1.0/configuration.html for details on how to configure idmtools.
+2025-08-20 00:29:02,808.808 /home/ykc2461/.local/lib/python3.9/site-packages/idmtools/core/platform_factory.py:312 _display_inputs [VERBOSE] (882329,140191876375552) - 
+Initializing SlurmPlatform with:
+2025-08-20 00:29:02,808.808 /home/ykc2461/.local/lib/python3.9/site-packages/idmtools/core/platform_factory.py:313 _display_inputs [VERBOSE] (882329,140191876375552) - {
+   "mode": "local",
+   "job_directory": "/gpfs/home/ykc2461/environment_calibration/experiments",
+   "max_running_jobs": 250,
+   "modules": [
+      "singularity"
+   ],
+   "account": "b1139",
+   "time": "6:00:00",
+   "partition": "b1139",
+   "mem": 2500
+}
+2025-08-20 00:29:10,860.860 /home/ykc2461/.local/lib/python3.9/site-packages/idmtools/core/exceptions.py:89 idmtools_error_handler [ERROR] (882329,140191876375552) - set_param_fn() missing 1 required positional argument: 'coord_df'
+NoneType: None

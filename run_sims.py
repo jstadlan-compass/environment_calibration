@@ -29,8 +29,9 @@ def submit_sim(site=None, nSims=1, characteristic=False, priority=manifest.prior
     # Show how to dynamically set priority and node_group
     platform = Platform("SLURM_LOCAL", job_directory=manifest.job_directory, partition='b1139', time='6:00:00',
                             account='b1139', modules=['singularity'], max_running_jobs=250, mem=2500)
-    
+    print("successfully created platform")
     experiment = create_exp(characteristic, nSims, site, my_manifest, not_use_singularity,platform, X)
+    print("successfully created experiment")
 
     # The last step is to call run() on the ExperimentManager to run the simulations.
     experiment.run(wait_until_done=False, platform=platform)

@@ -59,7 +59,7 @@ def my_func_per_site(X,coord_df):
     n_sims = int(coord_df.at['nSims','value'])
     # Supply parameters to X
     get_eradication(manifest.use_local_eradication)
-    param_key=pd.read_csv("parameter_key.csv")
+    param_key=pd.read_csv(manifest.parameter_key_path)
     df = pd.DataFrame({'parameter':[], 'unit_value': [], 'emod_value':[], 'type':[], 'param_set':[]})
     i=1
     for x in X:
