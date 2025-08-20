@@ -20,7 +20,7 @@ sys.path.append("../simulations")
 import manifest as manifest
 
 def submit_sim(site=None, nSims=1, characteristic=False, priority=manifest.priority, my_manifest=manifest,
-               not_use_singularity=False, X=None):
+               not_use_singularity=False, X=None, coord_df=coord_df):
     """
     This function is designed to be a parameterized version of the sequence of things we do 
     every time we run an emod experiment. 
@@ -30,7 +30,7 @@ def submit_sim(site=None, nSims=1, characteristic=False, priority=manifest.prior
     platform = Platform("SLURM_LOCAL", job_directory=manifest.job_directory, partition='b1139', time='6:00:00',
                             account='b1139', modules=['singularity'], max_running_jobs=250, mem=2500)
     print("successfully created platform")
-    experiment = create_exp(characteristic, nSims, site, my_manifest, not_use_singularity,platform, X)
+    experiment = create_exp(characteristic, nSims, site, my_manifest, not_use_singularity,platform, X ,coord_df)
     print("successfully created experiment")
 
     # The last step is to call run() on the ExperimentManager to run the simulations.
@@ -59,8 +59,8 @@ def add_calib_params(task, param, value, ptype):
         
     return {param: value}
 
-def create_exp(characteristic, nSims, site, my_manifest, not_use_singularity, platform, X):
-    task = _create_task(my_manifest, site)
+def create_exp(characteristic, nSims, site, my_manifest, not_use_singularity, platform, X, coord_df):
+    task = _create_task(my_manifest, site, coord_df)
 
     if not not_use_singularity:
         task.set_sif(manifest.SIF_PATH, platform)
@@ -92,7 +92,7 @@ def _create_builder(task,characteristic, nSims, site, X):
     return builder, exp_name
 
 
-def _create_task(my_manifest,site):
+def _create_task(my_manifest,site, coord_df):
     # create EMODTask
     print("Creating EMODTask (from files)...")
     task = EMODTask.from_default2(config_path="my_config.json",
@@ -100,7 +100,7 @@ def _create_task(my_manifest,site):
                                   ep4_custom_cb=None,
                                   campaign_builder=None,
                                   schema_path=str(my_manifest.schema_file),
-                                  param_custom_cb=set_param_fn,
+                                  param_custom_cb=partial(set_param_fn,coord_df=coord_df),
                                   demog_builder=build_demog,
                                   )
 

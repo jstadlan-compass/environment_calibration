@@ -71,7 +71,7 @@ def my_func_per_site(X,coord_df):
     for i, my_site in enumerate(sites):
         if os.path.exists(os.path.join(manifest.simulation_output_filepath,my_site)):
             shutil.rmtree(os.path.join(manifest.simulation_output_filepath,my_site))
-        submit_sim(site=my_site, nSims=n_sims, X=df)     
+        submit_sim(site=my_site, nSims=n_sims, X=df, coord_df = coord_df)     
   
     while True:
         outputs = []
