@@ -49,7 +49,7 @@ def run_simulation_for_site(site, exp_label, output_dir, calib_coord_path, param
     # Run simulation for this site
     wdir = os.path.join(output_dir, f"LF_{site}")
     os.makedirs(wdir, exist_ok=True)
-    Y0 = myFunc(X, wdir, coord_instance)
+    Y0 = myFunc(X, coord_instance)
 
     # Clean up non-score columns and calculate total score
     ps = Y0["param_set"]
