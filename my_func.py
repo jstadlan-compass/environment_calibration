@@ -78,6 +78,7 @@ def my_func_per_site(X,coord_df):
         for my_site in sites:
             outputs.append(os.path.exists(os.path.join(manifest.simulation_output_filepath,my_site,'finished.txt')))
         if all(outputs):#os.path.exists(manifest.simulation_output_filepath,my_site): 
+            print("simulation finished running!")
             for my_site in sites:
                 Y = compute_scores_across_site(my_site, coord_df)
             break
