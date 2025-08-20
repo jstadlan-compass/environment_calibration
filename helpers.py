@@ -204,7 +204,7 @@ def build_camp(site, coord_df=None):
   
     if not hs_df.empty:
         # case management for malaria
-        add_health_seeking(camp,hs_df)
+        add_health_seeking(camp,hs_df,coord_df=coord_df)
     
     # NMFs
     if (not pd.isna(coord_df.at['NMF_filepath','value'])) and (not (coord_df.at['NMF_filepath','value'] == '')):
@@ -213,7 +213,7 @@ def build_camp(site, coord_df=None):
         nmf_df = pd.DataFrame()
     if (not pd.isna(coord_df.at['NMF_filepath','value'])) and (not (coord_df.at['NMF_filepath','value'] == '')):
         if not hs_df.empty:
-            add_nmf_hs(camp, hs_df, nmf_df)
+            add_nmf_hs(camp, hs_df, nmf_df, coord_df=coord_df)
     
     # SMC
     if (not pd.isna(coord_df.at['SMC_filepath','value'])) and (not (coord_df.at['SMC_filepath','value'] == '')):
@@ -221,7 +221,7 @@ def build_camp(site, coord_df=None):
     else:
         smc_df = pd.DataFrame()
     if not smc_df.empty:
-        add_smc(camp,smc_df)
+        add_smc(camp,smc_df,coord_df=coord_df)
 
     # ITNS
     itn_df = pd.DataFrame()
@@ -234,7 +234,7 @@ def build_camp(site, coord_df=None):
         
     if not itn_df.empty:
         # Distribute ITNs with age- and season-based usage patterns
-        add_itns(camp,itn_df,itn_age,itn_season)
+        add_itns(camp,itn_df,itn_age,itn_season, coord_df=coord_df)
 
     return camp
 
@@ -292,7 +292,7 @@ def build_demog(coord_df):
 ################################
 
 ##### Treatment Seeking - Symptomatic Malaria #####
-def add_health_seeking(camp,hs_df, coord_df):
+def add_health_seeking(camp,hs_df, coord_df=None):
     for r, row in hs_df.iterrows():
         sim_year=int(row['year'])-int(coord_df.at['simulation_start_year','value'])
         if sim_year >=0:
@@ -313,7 +313,7 @@ def add_health_seeking(camp,hs_df, coord_df):
 
 
 ##### Treatment Seeking - Nonmalaria Causes #####
-def add_nmf_hs(camp, hs_df, nmf_df):
+def add_nmf_hs(camp, hs_df, nmf_df, coord_df=None):
     # if no NMF rate is specified, assume all age groups have 0.0038 probability each day
     if nmf_df.empty:
         nmf_df = pd.DataFrame({'U5_nmf': [0.0038], 'adult_nmf': [0.0038]})
@@ -322,10 +322,10 @@ def add_nmf_hs(camp, hs_df, nmf_df):
     nmf_row = nmf_df.iloc[0]
     # apply the health-seeking rate for clinical malaria to NMFs
     for r, row in hs_df.iterrows():
-        add_nmf_hs_from_file(camp, row, nmf_row)
+        add_nmf_hs_from_file(camp, row, nmf_row, coord_df=coord_df)
 
 
-def add_nmf_hs_from_file(camp, row, nmf_row, coord_df):
+def add_nmf_hs_from_file(camp, row, nmf_row, coord_df=None):
     if row['trigger'] == "NewClinicalCase":
         sim_year=int(row['year'])-int(coord_df.at['simulation_start_year','value'])
         if sim_year >=0:
@@ -491,7 +491,7 @@ def add_vaccdrug_smc(campaign,start_days: list, coverages: list,
             'total_smc_rounds': len(coverages)}
             
             
-def add_smc(camp,smc_df, coord_df):
+def add_smc(camp,smc_df, coord_df=None):
     sim_start_yr = int(coord_df.at['simulation_start_year','value'])
     for r, row in smc_df.iterrows():
          smc_year=int(row['year']) - sim_start_yr
@@ -506,7 +506,7 @@ def add_smc(camp,smc_df, coord_df):
 
 
 ##### ITNs with seasonal and age-dependent usage #####
-def add_itns(camp,itn_df,itn_age,itn_season, coord_df):
+def add_itns(camp,itn_df,itn_age,itn_season, coord_df=None):
     sim_start_yr = int(coord_df.at['simulation_start_year','value'])
     itn_seasonal_usage = {"Times": list(itn_season['season_time']),
                           "Values":list(itn_season['season_usage'])}
