@@ -108,7 +108,7 @@ def _create_task(my_manifest,site, coord_df):
     task.common_assets.add_directory(
         os.path.join(manifest.input_files_path, 'site_climate', site), relative_path="climate"
     )
-    add_outputs(task,site)
+    add_outputs(task,site,coord_df=coord_df)
     return task
 
 
