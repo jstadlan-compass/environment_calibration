@@ -83,3 +83,37 @@ Initializing SlurmPlatform with:
 }
 2025-08-20 00:29:10,860.860 /home/ykc2461/.local/lib/python3.9/site-packages/idmtools/core/exceptions.py:89 idmtools_error_handler [ERROR] (882329,140191876375552) - set_param_fn() missing 1 required positional argument: 'coord_df'
 NoneType: None
+2025-08-20 00:59:02,582.582 /home/ykc2461/.local/lib/python3.9/site-packages/idmtools/config/idm_config_parser.py:213 _load_config_file [WARNING] (912744,140144834307072) - /!\ WARNING: File 'idmtools.ini' Not Found! For details on how to configure idmtools, see https://docs.idmod.org/projects/idmtools/en/v2.1.0/configuration.html for details on how to configure idmtools.
+2025-08-20 00:59:03,550.550 /home/ykc2461/.local/lib/python3.9/site-packages/idmtools/core/platform_factory.py:312 _display_inputs [VERBOSE] (912744,140144834307072) - 
+Initializing SlurmPlatform with:
+2025-08-20 00:59:03,550.550 /home/ykc2461/.local/lib/python3.9/site-packages/idmtools/core/platform_factory.py:313 _display_inputs [VERBOSE] (912744,140144834307072) - {
+   "mode": "local",
+   "job_directory": "/gpfs/home/ykc2461/environment_calibration/experiments",
+   "partition": "b1139",
+   "time": "6:00:00",
+   "mem": 2500,
+   "max_running_jobs": 250,
+   "account": "b1139",
+   "modules": [
+      "singularity"
+   ]
+}
+2025-08-20 00:59:22,627.627 /home/ykc2461/.local/lib/python3.9/site-packages/idmtools/core/exceptions.py:89 idmtools_error_handler [ERROR] (912744,140144834307072) - build_demog() missing 1 required positional argument: 'coord_df'
+NoneType: None
+2025-08-20 01:00:04,985.985 /home/ykc2461/.local/lib/python3.9/site-packages/idmtools/config/idm_config_parser.py:213 _load_config_file [WARNING] (913991,139964526236672) - /!\ WARNING: File 'idmtools.ini' Not Found! For details on how to configure idmtools, see https://docs.idmod.org/projects/idmtools/en/v2.1.0/configuration.html for details on how to configure idmtools.
+2025-08-20 01:00:05,447.447 /home/ykc2461/.local/lib/python3.9/site-packages/idmtools/core/platform_factory.py:312 _display_inputs [VERBOSE] (913991,139964526236672) - 
+Initializing SlurmPlatform with:
+2025-08-20 01:00:05,447.447 /home/ykc2461/.local/lib/python3.9/site-packages/idmtools/core/platform_factory.py:313 _display_inputs [VERBOSE] (913991,139964526236672) - {
+   "mode": "local",
+   "job_directory": "/gpfs/home/ykc2461/environment_calibration/experiments",
+   "partition": "b1139",
+   "modules": [
+      "singularity"
+   ],
+   "account": "b1139",
+   "max_running_jobs": 250,
+   "time": "6:00:00",
+   "mem": 2500
+}
+2025-08-20 01:00:19,457.457 /home/ykc2461/.local/lib/python3.9/site-packages/idmtools/core/exceptions.py:89 idmtools_error_handler [ERROR] (913991,139964526236672) - build_demog() missing 1 required positional argument: 'coord_df'
+NoneType: None

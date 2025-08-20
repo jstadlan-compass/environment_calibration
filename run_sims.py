@@ -20,7 +20,7 @@ sys.path.append("../simulations")
 import manifest as manifest
 
 def submit_sim(site=None, nSims=1, characteristic=False, priority=manifest.priority, my_manifest=manifest,
-               not_use_singularity=False, X=None, coord_df=coord_df):
+               not_use_singularity=False, X=None, coord_df=None):
     """
     This function is designed to be a parameterized version of the sequence of things we do 
     every time we run an emod experiment. 
