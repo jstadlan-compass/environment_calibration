@@ -123,6 +123,10 @@ def add_outputs(task, site, coord_df=None):
         incidence_df=incidence_df[incidence_df['site']==site]                  
 
         incidence_agebins = sorted([float(a) for a in incidence_df['age'].unique()])
+        
+        # debug
+        print("dataframe size:")
+        print(incidence_df.size)
         first_year = int(incidence_df['year'].min()) - sim_start_year
         last_year = int(incidence_df['year'].max()) - sim_start_year + 1
         
