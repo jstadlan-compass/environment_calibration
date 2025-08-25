@@ -120,6 +120,8 @@ def add_outputs(task, site, coord_df=None):
     ### Incidence-related reports ###     
     if(coord_df.at['incidence_comparison','value']):
         incidence_df = pd.read_csv(os.path.join(manifest.base_reference_filepath,coord_df.at['incidence_comparison_reference','value']))
+        
+        print(site)
         incidence_df=incidence_df[incidence_df['site']==site]                  
 
         incidence_agebins = sorted([float(a) for a in incidence_df['age'].unique()])
