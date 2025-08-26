@@ -265,7 +265,7 @@ def set_simulation_scenario(simulation, site, csv_path):
     simulation.task.config.parameters.Simulation_Duration = simulation_duration
     simulation.task.config.parameters.Enable_Vital_Dynamics = 1
     demographics_filename = str(coord_df.at['demographics_filepath','value'])
-    #print(demographics_filename)
+    print(demographics_filename)
     if demographics_filename and demographics_filename != 'nan':
         simulation.task.transient_assets.add_asset(manifest.input_files_path / demographics_filename)
         simulation.task.config.parameters.Demographics_Filenames = [demographics_filename.rsplit('/',1)[-1]]
