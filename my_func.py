@@ -55,7 +55,6 @@ def my_func(X,wdir):
     
 def my_func_per_site(X,coord_df):
     site = coord_df.at['site','value']
-    sites =[site]
     n_sims = int(coord_df.at['nSims','value'])
     # Supply parameters to X
     get_eradication(manifest.use_local_eradication)
@@ -68,21 +67,16 @@ def my_func_per_site(X,coord_df):
         i=i+1
         df = pd.concat([df,a])
   
-    for i, my_site in enumerate(sites):
-        if os.path.exists(os.path.join(manifest.simulation_output_filepath,my_site)):
-            shutil.rmtree(os.path.join(manifest.simulation_output_filepath,my_site))
-        submit_sim(site=my_site, nSims=n_sims, X=df, coord_df = coord_df)     
+    if os.path.exists(os.path.join(manifest.simulation_output_filepath,site)):
+        shutil.rmtree(os.path.join(manifest.simulation_output_filepath,site))
+    submit_sim(site=site, nSims=n_sims, X=df, coord_df = coord_df)     
   
     while True:
-        outputs = []
-        for my_site in sites:
-            outputs.append(os.path.exists(os.path.join(manifest.simulation_output_filepath,my_site,'finished.txt')))
-        if all(outputs):#os.path.exists(manifest.simulation_output_filepath,my_site): 
+        if os.path.exists(os.path.join(manifest.simulation_output_filepath,site,'finished.txt')):
             print("simulation finished running!")
-            for my_site in sites:
-                Y = compute_scores_across_site(my_site, coord_df)
+            Y = compute_scores_across_site(site, coord_df)
             break
-        time.sleep(120)   
+        time.sleep(60)   
     
     return(Y)
 

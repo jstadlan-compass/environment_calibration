@@ -105,7 +105,6 @@ def _create_task(my_manifest,site, coord_df=None):
                                   )
 
     task.config.parameters.Birth_Rate_Dependence = "FIXED_BIRTH_RATE"
-    coord_df.head()
     task.common_assets.add_directory(coord_df.loc['climate_filepath']['value'])
     add_outputs(task,site,coord_df=coord_df)
     return task
