@@ -22,6 +22,9 @@ def run_analyzers(site: str, expid: str = None, characteristic: bool = False) ->
              if not, return experiment status and id.
 
     """
+    # debug:
+    print('are we getting this far?')
+    
     #platform = Platform(manifest.platform_name)
     platform = Platform('SLURM_LOCAL',job_directory=manifest.job_directory, mem=80000)
     comps_id_file = get_comps_id_filename(site=site)
