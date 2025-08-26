@@ -67,6 +67,9 @@ def my_func_per_site(X,coord_df):
         i=i+1
         df = pd.concat([df,a])
   
+    #debug filepaths for climate
+    print(coord_df.loc['climate_filepath']['value'])
+
     if os.path.exists(os.path.join(manifest.simulation_output_filepath,site)):
         shutil.rmtree(os.path.join(manifest.simulation_output_filepath,site))
     submit_sim(site=site, nSims=n_sims, X=df, coord_df = coord_df)     
