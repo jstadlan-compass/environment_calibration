@@ -4,7 +4,7 @@ from pathlib import Path
 import os
 
 VENV_PATH = '/gpfs/home/ykc2461/my_environments/pytorch_test'
-SITE='Nanoro'
+SITE='Banfora'
 EXPERIMENT_LABEL='sample_experiment'
 
 CURRENT_DIR = Path(__file__).resolve().parent
