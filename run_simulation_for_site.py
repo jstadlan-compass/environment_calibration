@@ -85,7 +85,7 @@ if __name__ == "__main__":
     param_key_path = manifest.parameter_key_path
     gs_coord_path = manifest.global_simulation_coordinator_path
     weights_path = "simulation_inputs/weights.csv"
-
-	gs_coord_df = pd.read_csv(gs_coord_path)
-	for site in gs_coord_df['site']:
-		run_simulation_for_site(site, exp_label, output_dir, calib_coord_path, param_key_path, gs_coord_path, weights_path)
+    
+    coord_df = pd.read_csv(gs_coord_path)
+    for site in gs_coord_df['site']:
+        run_simulation_for_site(site, exp_label, output_dir, calib_coord_path, param_key_path, gs_coord_path, weights_path)
