@@ -82,9 +82,9 @@ def _create_builder(task,characteristic, nSims, site, X, coord_df=None):
     print("sweep run_number")
     # Sweep sites and seeds - based on values in simulation_coordinator csv
     if characteristic:
-        builder.add_sweep_definition(set_simulation_scenario_for_characteristic_site, [site])
+        builder.add_sweep_definition(partial(set_simulation_scenario, coord_df=coord_df, [site])
     else:
-        builder.add_sweep_definition(set_simulation_scenario_for_matched_site, [site])
+        builder.add_sweep_definition(partial(set_simulation_scenario, coord_df=coord_df), [site])
     print("setting scenario")
     builder.add_sweep_definition(partial(add_calib_param_func, calib_params=X, coord_df=coord_df), np.unique(X['param_set']))
     print("sweep builder params")

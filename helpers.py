@@ -106,7 +106,6 @@ def add_outputs(task, site, coord_df=None):
     """
     Requesting reports/outputs to the task.
     """
-    coord_df.to_csv('what_happened_to_coord_df.csv', index=False)
     
     
     simulation_years = int(coord_df.at['simulation_years','value'])
@@ -254,10 +253,8 @@ def build_standard_campaign_object(manifest):
     return campaign
 
 
-def set_simulation_scenario(simulation, site, csv_path):
+def set_simulation_scenario(simulation, site, coord_df=None):
     # get information on this simulation setup from coordinator csv
-    coord_df = pd.read_csv(csv_path)
-    coord_df = coord_df.set_index('option')
 
     # === set up config === #
     # simulation duration
@@ -275,11 +272,11 @@ def set_simulation_scenario(simulation, site, csv_path):
     build_camp_partial = partial(build_camp, site=site, coord_df=coord_df)
     simulation.task.create_campaign_from_callback(build_camp_partial)
  
-    return {"Site": site, 'csv_path': str(csv_path)}
+    return {"Site": site, 'csv_path': str()}
 
 
-set_simulation_scenario_for_matched_site = partial(set_simulation_scenario, csv_path=manifest.simulation_coordinator_path)
-set_simulation_scenario_for_characteristic_site = partial(set_simulation_scenario, csv_path=manifest.sweep_sim_coordinator_path)
+#set_simulation_scenario_for_matched_site = partial(set_simulation_scenario, csv_path=manifest.simulation_coordinator_path)
+#set_simulation_scenario_for_characteristic_site = partial(set_simulation_scenario, csv_path=manifest.sweep_sim_coordinator_path)
 
 
 def build_demog(coord_df):
