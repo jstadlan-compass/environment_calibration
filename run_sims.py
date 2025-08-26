@@ -11,9 +11,9 @@ from idmtools.entities.experiment import Experiment
 from emodpy.emod_task import EMODTask
 import sys
 # from within environment_calibration_common submodule
-from helpers import set_param_fn, update_sim_random_seed, build_demog, set_simulation_scenario_for_characteristic_site, \
-    set_simulation_scenario_for_matched_site, get_comps_id_filename, add_outputs, add_calib_param_func,extract_climate,\
-    generate_demographics
+from helpers import set_param_fn, update_sim_random_seed, build_demog, \
+    get_comps_id_filename, add_outputs, add_calib_param_func,extract_climate,\
+    generate_demographics, set_simulation_scenario
 from utils_slurm import submit_scheduled_analyzer
 # from source 'simulations' directory
 sys.path.append("../simulations")
@@ -82,7 +82,7 @@ def _create_builder(task,characteristic, nSims, site, X, coord_df=None):
     print("sweep run_number")
     # Sweep sites and seeds - based on values in simulation_coordinator csv
     if characteristic:
-        builder.add_sweep_definition(partial(set_simulation_scenario, coord_df=coord_df, [site])
+        builder.add_sweep_definition(partial(set_simulation_scenario, coord_df=coord_df), [site])
     else:
         builder.add_sweep_definition(partial(set_simulation_scenario, coord_df=coord_df), [site])
     print("setting scenario")
