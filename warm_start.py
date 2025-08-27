@@ -34,7 +34,7 @@ import manifest as manifest
 from batch_generators.turbo_thompson_sampling import TurboThompsonSampling 
 import run_simulation_for_site
 
-from typing import Dict, Optional, Sequence, Tuple
+from typing import Dict, Optional, Sequence, Tuple, Callable, Union
 import matplotlib
 import matplotlib.pyplot as plt
 
@@ -327,6 +327,209 @@ def run_site_turbo(site,
 # ──────────────────────────────────────────────────────────────────────────────
 
 
+def _make_gp_predictor(gp_obj: object) -> Callable[[np.ndarray], Tuple[np.ndarray, np.ndarray]]:
+    """
+    Wrap various GP outputs into a single callable that returns (mean, std) for an (n,d) array X.
+    Supported:
+      - A callable: gp_obj(X) -> (mean, std)  OR (mean, var)
+      - sklearn-like: gp_obj.predict(X, return_std=True)
+      - sklearn-like returning variance: gp_obj.predict(X, return_std=True) -> (mean, std)
+      - GPyTorch-like: gp_obj.posterior(X) with .mean, .variance
+    """
+    # Case 1: directly callable and returns (mean, std/var)
+    if callable(gp_obj):
+        def _call(X: np.ndarray):
+            out = gp_obj(X)
+            if isinstance(out, tuple) and len(out) >= 2:
+                mean, second = out[:2]
+                mean = _to_numpy(mean).reshape(-1)
+                second = _to_numpy(second).reshape(-1)
+                # Heuristic: if any values < 0 after squaring, it was std. Keep std.
+                # Safer: treat 'second' as std if it has typical magnitude; else var
+                std = np.sqrt(second) if np.any(second > 10 * np.finfo(float).eps) and np.any(second > 1e-14) and np.mean(second) > 1e-12 else second
+                # If that heuristic seems too cute, just assume 'second' is std:
+                # std = second
+                return mean, std
+            raise ValueError("Callable GP must return (mean, std) or (mean, var).")
+        return _call
+
+    # Case 2: sklearn-like API
+    if hasattr(gp_obj, "predict"):
+        def _call(X: np.ndarray):
+            mean, std = gp_obj.predict(X, return_std=True)
+            return _to_numpy(mean).reshape(-1), _to_numpy(std).reshape(-1)
+        return _call
+
+    # Case 3: GPyTorch-like posterior
+    if hasattr(gp_obj, "posterior"):
+        def _call(X: np.ndarray):
+            X_t = torch.as_tensor(X, dtype=torch.get_default_dtype() if torch is not None else torch.float32) if torch is not None else X
+            with torch.no_grad():
+                post = gp_obj.posterior(X_t)
+                mean = _to_numpy(post.mean).reshape(-1)
+                # post.variance might be Tensor or LazyTensor; try .to_dense() if needed
+                var = post.variance
+                if hasattr(var, "to_dense"):
+                    var = var.to_dense()
+                std = np.sqrt(_to_numpy(var).reshape(-1))
+            return mean, std
+        return _call
+
+    raise TypeError("Unsupported GP object. Pass a callable or a model with .predict(..., return_std=True) or .posterior(...).")
+
+
+def _build_partial_grid(
+    X_ref: np.ndarray,
+    j: int,
+    x_min: float,
+    x_max: float,
+    n_grid: int = 200
+) -> np.ndarray:
+    """Create a grid along dimension j while holding others at X_ref."""
+    xg = np.linspace(x_min, x_max, n_grid)
+    Xg = np.tile(X_ref, (n_grid, 1))
+    Xg[:, j] = xg
+    return Xg, xg
+
+
+def plot_y_vs_each_x_from_results_with_gp(
+    results: Dict[str, Dict[str, object]],
+    gp_model_or_predictor: Union[Callable[[np.ndarray], Tuple[np.ndarray, np.ndarray]], object],
+    *,
+    x_labels: Optional[Sequence[str]] = None,
+    title_prefix: str = "Global seed evaluation",
+    figsize: Tuple[float, float] = (7.0, 4.8),
+    alpha_points: float = 0.9,
+    alpha_band: float = 0.20,
+    save_dir: Optional[str] = None,
+    fmt: str = "png",
+    dpi: int = 160,
+    n_grid: int = 200,
+    x_ref: Optional[Sequence[float]] = None,   # partial dep ref point; default = column medians of all X
+    x_bounds: Optional[Sequence[Tuple[float, float]]] = None,  # per-dim (min,max); default from data with small pad
+    pad_frac: float = 0.03,
+) -> None:
+    """
+    For each X dimension, plot: scatter of Y vs X[:, j] (colored by site),
+    plus GP mean line and 95% CI band from the GP's predictive std.
+
+    results[site] = {"X": (n_i, d), "Y": (n_i,)}
+    gp_model_or_predictor: callable or model; must return mean & std for an (n,d) X.
+    """
+    # --- gather data across sites ---
+    site_names, X_chunks, Y_chunks = [], [], []
+    d_first = None
+    for site, dct in results.items():
+        X_i = _to_numpy(dct["X"])
+        Y_i = _to_numpy(dct["Y"]).reshape(-1)
+        if X_i.ndim != 2:
+            raise ValueError(f"results['{site}']['X'] must be 2D, got {X_i.shape}")
+        if Y_i.shape[0] != X_i.shape[0]:
+            raise ValueError(f"results['{site}'] length mismatch: Y={Y_i.shape[0]} vs X rows={X_i.shape[0]}")
+        if d_first is None:
+            d_first = X_i.shape[1]
+        elif X_i.shape[1] != d_first:
+            raise ValueError(f"All sites must share the same X dimensionality; mismatch at site '{site}'.")
+        X_chunks.append(X_i); Y_chunks.append(Y_i)
+        site_names.extend([site] * X_i.shape[0])
+
+    if d_first is None:
+        raise ValueError("Empty results.")
+
+    X_all = np.vstack(X_chunks)        # (N, d)
+    Y_all = np.concatenate(Y_chunks)   # (N,)
+    sites_all = np.array(site_names)   # (N,)
+    d = d_first
+
+    if not x_labels or len(x_labels) != d:
+        x_labels = [f"X[{j}]" for j in range(d)]
+
+    # default reference: column medians
+    if x_ref is None:
+        x_ref = np.median(X_all, axis=0)
+    else:
+        x_ref = np.asarray(x_ref).reshape(-1)
+        if x_ref.shape[0] != d:
+            raise ValueError(f"x_ref must have length {d} (one ref value per dimension).")
+
+    # default bounds: from data with small padding
+    if x_bounds is None:
+        mins = X_all.min(axis=0)
+        maxs = X_all.max(axis=0)
+        spans = np.maximum(maxs - mins, 1e-9)
+        x_bounds = [(mins[j] - pad_frac * spans[j], maxs[j] + pad_frac * spans[j]) for j in range(d)]
+    else:
+        if len(x_bounds) != d:
+            raise ValueError(f"x_bounds must be a sequence of {d} (min,max) tuples.")
+
+    # palette per site
+    uniq_sites = np.unique(sites_all)
+    cmap = plt.cm.get_cmap("tab20", max(len(uniq_sites), 3))
+    color_map = {s: cmap(i % cmap.N) for i, s in enumerate(uniq_sites)}
+
+    # make predictor
+    gp_predict = _make_gp_predictor(gp_model_or_predictor)
+
+    # --- plot per dimension ---
+    for j in range(d):
+        fig, ax = plt.subplots(figsize=figsize)
+
+        # scatter by site
+        for s in uniq_sites:
+            m = (sites_all == s)
+            ax.scatter(
+                X_all[m, j], Y_all[m],
+                label=str(s),
+                s=28,
+                alpha=alpha_points,
+                edgecolors="none",
+                c=[color_map[s]],
+                zorder=3
+            )
+
+        # GP partial dependence along dim j
+        (x_lo, x_hi) = x_bounds[j]
+        Xg, xg = _build_partial_grid(np.array(x_ref, dtype=float), j, x_lo, x_hi, n_grid=n_grid)
+        mu, sd = gp_predict(Xg)   # shapes: (n_grid,), (n_grid,)
+
+        ci_lo = mu - 1.96 * sd
+        ci_hi = mu + 1.96 * sd
+
+        # shaded CI first (under the line & points)
+        ax.fill_between(xg, ci_lo, ci_hi, alpha=alpha_band, linewidth=0, label="95% CI", zorder=1)
+        # mean line
+        ax.plot(xg, mu, linewidth=2.0, label="GP mean", zorder=2)
+
+        # cosmetics
+        ax.set_xlabel(x_labels[j])
+        ax.set_ylabel("Y")
+        ax.grid(True, linestyle=":", linewidth=0.7, alpha=0.7)
+        ax.set_title(f"{title_prefix}: Y vs {x_labels[j]}")
+
+        # legend: sites + GP entries
+        handles, labels = ax.get_legend_handles_labels()
+        # Ensure "GP mean" and "95% CI" appear last & only once
+        # (already included via plot/fill_between)
+        leg = ax.legend(
+            handles, labels,
+            title="Legend",
+            loc="best",
+            frameon=True,
+            framealpha=0.9,
+            scatterpoints=1,
+            markerscale=1.3
+        )
+
+        plt.tight_layout()
+
+        if save_dir:
+            os.makedirs(save_dir, exist_ok=True)
+            safe = x_labels[j].replace(' ', '_').replace('[','').replace(']','')
+            fig.savefig(os.path.join(save_dir, f"y_vs_{safe}.{fmt}"), dpi=dpi)
+            plt.close(fig)
+        else:
+            plt.show()
+
 def _to_numpy(x):
     """Accept torch.Tensor or array-like; return 1D/2D numpy on CPU."""
     if torch is not None and isinstance(x, torch.Tensor):
@@ -434,6 +637,10 @@ def plot_y_vs_each_x_from_results(
         else:
             plt.show()
             
+            
+           
+            
+            
 # ──────────────────────────────────────────────────────────────────────────────
 # 7) MAIN WORKFLOW
 # ──────────────────────────────────────────────────────────────────────────────
@@ -456,9 +663,24 @@ def main():
     global_gp, feats_norm, (fmin, fmax) = fit_global_gp(global_cache, site_features,
                                                         only_sites=global_sites, device=device)
     
-
+    
     matplotlib.use("Agg")
-    plot_y_vs_each_x_from_results(global_cache, x_labels=None, save_dir="figs/warm_start", fmt="png", dpi=160)
+
+    # 3) Plot
+    plot_y_vs_each_x_from_results_with_gp(
+        global_cache,
+        gp_model_or_predictor=global_gp,
+        x_labels=None,                    # or list of names, length = d
+        title_prefix="Global seeds",
+        save_dir=None,                    # or "figs/warm_start"
+        fmt="png",
+        dpi=160,
+        n_grid=300,                       # denser curve if you like
+        # x_ref=<vector of length d>,     # optional: ref point for other dims; defaults to column medians
+        # x_bounds=[(min_j, max_j), ...], # optional: per-dim bounds; defaults to data min/max with padding
+    )
+
+    #plot_y_vs_each_x_from_results(global_cache, x_labels=None, save_dir="figs/warm_start", fmt="png", dpi=160)
     
 
 
