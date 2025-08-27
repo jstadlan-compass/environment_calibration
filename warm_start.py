@@ -38,6 +38,7 @@ from typing import Dict, Optional, Sequence, Tuple, Callable, Union
 import matplotlib
 import matplotlib.pyplot as plt
 
+import manifest
 
 # ──────────────────────────────────────────────────────────────────────────────
 # 0) USER SETTINGS
@@ -55,15 +56,21 @@ param_ranges: Dict[str, Tuple[float, float]] = {
 
 # Provide site features (start with lat/lon; later replace via CSV loader)
 # Map site -> feature vector (any numeric features). Keep length F consistent.
-site_features: Dict[str | int, List[float]] = {
-    101: [0.12, 36.48],   # (lat, lon) example
-    205: [0.35, 36.70],
-    309: [0.62, 36.91],
-    412: [0.77, 36.12],
-}
+gs_coord_df = pd.read_csv(manifest.global_simulation_coordinator_path)
+site_features: dict[str, list[float]] = dict(
+    zip(gs_coord_df["site"], gs_coord_df[["lat", "lon"]].values.tolist())
+)
+
+ 
+# site_features: Dict[str | int, List[float]] = {
+#     101: [0.12, 36.48],   # (lat, lon) example
+#     205: [0.35, 36.70],
+#     309: [0.62, 36.91],
+#     412: [0.77, 36.12],
+# }
 
 # Which sites to include in global (multi-site) MTGP phase
-global_sites: List[str | int] = [101, 205, 309]
+global_sites = gs_coord_df["site"]
 
 
 # globals for now–
@@ -677,9 +684,211 @@ def plot_y_vs_each_x_from_results(
         else:
             plt.show()
             
-            
+
+def _eval_prior_fn(prior_fn, X_t):
+    """
+    Run a site prior function on torch tensor X_t and return (mean_np, std_np).
+    Supports:
+      - returns (mean, std) or (mean, var)
+      - returns a distribution-like with .mean and .variance
+      - returns only mean (std -> None)
+    """
+    with torch.no_grad():
+        out = prior_fn(X_t)
+
+    # tuple (mean, std|var)
+    if isinstance(out, tuple) and len(out) >= 2:
+        mean_t, second_t = out[:2]
+        mean = _to_numpy(mean_t).reshape(-1)
+        second = _to_numpy(second_t).reshape(-1)
+        # Heuristic: if values look like variance, take sqrt; otherwise assume std
+        std = np.sqrt(second) if np.all(second >= 0) else second
+        return mean, std
+
+    # distribution-like
+    if hasattr(out, "mean"):
+        mean_t = out.mean
+        var_t = getattr(out, "variance", None)
+        mean = _to_numpy(mean_t).reshape(-1)
+        if var_t is not None:
+            if hasattr(var_t, "to_dense"):
+                var_t = var_t.to_dense()
+            std = np.sqrt(_to_numpy(var_t).reshape(-1))
+        else:
+            std = None
+        return mean, std
+
+    # tensor-like mean only
+    if torch is not None and isinstance(out, torch.Tensor):
+        return _to_numpy(out).reshape(-1), None
+
+    # array-like mean only
+    arr = np.asarray(out)
+    return arr.reshape(-1), None
+
+
+def plot_y_vs_each_x_from_results_with_site_priors(
+    results: Dict[str, Dict[str, object]],          # results[site] = {"X": (n_i,d), "Y": (n_i,)}
+    global_gp: object,                               # your trained global GP (used to build site priors)
+    global_cache: Dict[str, Dict[str, torch.Tensor]],# global_cache[site]["X"] (torch, holds device/dtype/D)
+    feats_norm: Dict[str, object],                   # site -> normalization object used by make_site_prior_fn
+    sites_for_prior: Sequence[str],                  # subset of sites to overlay priors for
+    *,
+    x_labels: Optional[Sequence[str]] = None,
+    title_prefix: str = "Warm-start prior",
+    figsize: Tuple[float, float] = (7.2, 4.8),
+    alpha_points: float = 0.9,
+    alpha_band: float = 0.25,
+    save_dir: Optional[str] = None,
+    fmt: str = "png",
+    dpi: int = 160,
+    n_grid: int = 200,
+    pad_frac: float = 0.03,
+    device: Optional["torch.device"] = None,        # if None, pulled from each site's cache tensor
+):
+    """
+    For each X dimension j:
+      • scatter Y vs X[:, j] for all sites (colored by site),
+      • for each site in `sites_for_prior`, overlay that site's warm-start PRIOR GP mean & 95% CI.
+    """
+    # --- gather data across all sites for scatter & bounds ---
+    site_names, X_chunks, Y_chunks = [], [], []
+    d_data = None
+    for site, dct in results.items():
+        X_i = _to_numpy(dct["X"])
+        Y_i = _to_numpy(dct["Y"]).reshape(-1)
+        if X_i.ndim != 2:
+            raise ValueError(f"results['{site}']['X'] must be 2D, got {X_i.shape}")
+        if Y_i.shape[0] != X_i.shape[0]:
+            raise ValueError(f"results['{site}']: Y={Y_i.shape[0]} vs X rows={X_i.shape[0]}")
+        if d_data is None:
+            d_data = X_i.shape[1]
+        elif X_i.shape[1] != d_data:
+            raise ValueError("All sites must share identical X dimensionality in results.")
+        X_chunks.append(X_i); Y_chunks.append(Y_i)
+        site_names.extend([site] * X_i.shape[0])
+
+    if d_data is None:
+        raise ValueError("Empty results.")
+
+    X_all = np.vstack(X_chunks)        # (N, d_data)
+    Y_all = np.concatenate(Y_chunks)   # (N,)
+    sites_all = np.array(site_names)
+
+    if not x_labels or len(x_labels) != d_data:
+        x_labels = [f"X[{j}]" for j in range(d_data)]
+
+    # axis bounds from pooled data, with a small pad
+    mins = X_all.min(axis=0); maxs = X_all.max(axis=0)
+    spans = np.maximum(maxs - mins, 1e-9)
+    x_bounds = [(mins[j] - pad_frac * spans[j], maxs[j] + pad_frac * spans[j]) for j in range(d_data)]
+
+    # color map per site (backward-compatible)
+    uniq_sites = np.unique(sites_all)
+    try:
+        cmap = plt.cm.get_cmap("tab20", max(len(uniq_sites), 3))
+        cmapN = getattr(cmap, "N", max(len(uniq_sites), 3))
+    except TypeError:
+        cmap = plt.cm.get_cmap("tab20")
+        cmapN = getattr(cmap, "N", 20)
+    color_map = {s: cmap(i % cmapN) for i, s in enumerate(uniq_sites)}
+
+    # line styles for prior curves (cycle for multiple sites)
+    line_styles = ["-", "--", "-.", ":"]
+    style_for = {s: line_styles[i % len(line_styles)] for i, s in enumerate(sites_for_prior)}
+
+    # --- plot per dimension ---
+    for j in range(d_data):
+        fig, ax = plt.subplots(figsize=figsize)
+
+        # scatter by site
+        for s in uniq_sites:
+            m = (sites_all == s)
+            ax.scatter(
+                X_all[m, j], Y_all[m],
+                label=str(s), s=28, alpha=alpha_points,
+                edgecolors="none", c=[color_map[s]], zorder=3
+            )
+
+        # overlay warm-start site priors
+        first_band_drawn = False
+        lo, hi = x_bounds[j]
+        xg_np = np.linspace(lo, hi, n_grid)
+
+        for s in sites_for_prior:
+            if s not in results or s not in global_cache or s not in feats_norm:
+                # Skip silently if a site is missing from any required mapping
+                continue
+
+            # dimensions / dtype / device match this site's cache tensor
+            X_cache = global_cache[s]["X"]                 # torch.Tensor
+            D_site = int(X_cache.size(1))
+            if D_site != d_data:
+                raise ValueError(
+                    f"Site '{s}' prior has D={D_site} but results have d={d_data}. "
+                    f"These must match."
+                )
+            site_device = X_cache.device if device is None else device
+            site_dtype  = X_cache.dtype
+
+            # build the prior function
+            site_feat_norm = feats_norm[s]
+            prior_fn = make_site_prior_fn(global_gp, site_feat_norm, D=D_site, device=site_device)
+
+            # reference vector: median over this site's observed X (from results)
+            X_site_np = _to_numpy(results[s]["X"])
+            ref_np = np.median(X_site_np, axis=0)   # (D_site,)
+
+            # full grid for this site, varying only dim j
+            Xg_t = torch.as_tensor(
+                np.tile(ref_np, (n_grid, 1)),
+                dtype=site_dtype, device=site_device
+            )
+            xg_t = torch.as_tensor(xg_np, dtype=site_dtype, device=site_device)
+            Xg_t[:, j] = xg_t
+
+            # evaluate prior mean/std & plot
+            mu, sd = _eval_prior_fn(prior_fn, Xg_t)   # numpy arrays
+            if sd is not None:
+                ci_lo = mu - 1.96 * sd
+                ci_hi = mu + 1.96 * sd
+                ax.fill_between(
+                    xg_np, ci_lo, ci_hi,
+                    alpha=alpha_band, linewidth=0,
+                    color=color_map.get(s, None),
+                    label=None if first_band_drawn else "95% CI (prior)",
+                    zorder=1
+                )
+                first_band_drawn = True
+
+            ax.plot(
+                xg_np, mu,
+                linestyle=style_for[s],
+                linewidth=2.0,
+                color=color_map.get(s, None),
+                label=f"{s} prior mean",
+                zorder=2
+            )
+
+        # cosmetics
+        ax.set_xlabel(x_labels[j]); ax.set_ylabel("Y")
+        ax.grid(True, linestyle=":", linewidth=0.7, alpha=0.7)
+        ax.set_title(f"{title_prefix}: Y vs {x_labels[j]}")
+
+        # legend: sites (scatter) + prior curves (+ one CI entry)
+        handles, labels = ax.get_legend_handles_labels()
+        ax.legend(handles, labels, title="Legend", loc="best",
+                  frameon=True, framealpha=0.9, scatterpoints=1, markerscale=1.3)
+
+        plt.tight_layout()
+        if save_dir:
+            os.makedirs(save_dir, exist_ok=True)
+            safe = x_labels[j].replace(' ', '_').replace('[','').replace(']','')
+            fig.savefig(os.path.join(save_dir, f"y_vs_{safe}.{fmt}"), dpi=dpi)
+            plt.close(fig)
+        else:
+            plt.show()
            
-            
             
 # ──────────────────────────────────────────────────────────────────────────────
 # 7) MAIN WORKFLOW
@@ -706,23 +915,26 @@ def main():
     
     matplotlib.use("Agg")
 
-    # 3) Plot
-    plot_y_vs_each_x_from_results_with_gp(
-        global_cache,
-        gp_model_or_predictor=global_gp,
-        x_labels=None,                    # or list of names, length = d
-        title_prefix="Global seeds",
-        save_dir=None,                    # or "figs/warm_start"
-        fmt="png",
-        dpi=160,
-        n_grid=300,                       # denser curve if you like
-        # x_ref=<vector of length d>,     # optional: ref point for other dims; defaults to column medians
-        # x_bounds=[(min_j, max_j), ...], # optional: per-dim bounds; defaults to data min/max with padding
-    )
 
     #plot_y_vs_each_x_from_results(global_cache, x_labels=None, save_dir="figs/warm_start", fmt="png", dpi=160)
     
+    
 
+    sites_subset = ["banfora", "djibo", "po", "reo"]   # <-- your subset
+    
+    plot_y_vs_each_x_from_results_with_site_priors(
+        global_cache,
+        global_gp=global_gp,
+        global_cache=global_cache,
+        feats_norm=feats_norm,
+        sites_for_prior=sites_subset,
+        x_labels=None,                 # or list of names for X dims
+        title_prefix="Warm-start local prior",
+        save_dir=None,                 # or "figs/warm_start"
+        fmt="png",
+        dpi=160,
+        n_grid=300
+    )
 
 
     if not GLOBAL_ONLY:
