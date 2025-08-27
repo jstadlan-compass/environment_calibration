@@ -327,47 +327,59 @@ def run_site_turbo(site,
 # ──────────────────────────────────────────────────────────────────────────────
 
 
-def _make_gp_predictor(gp_obj: object) -> Callable[[np.ndarray], Tuple[np.ndarray, np.ndarray]]:
+def _torchify_like(module_or_likelihood, X_np):
+    """Make a torch tensor on the same device/dtype as the model/likelihood."""
+    if torch is None:
+        raise TypeError("Torch not available but a torch model was provided.")
+    # Try to grab dtype/device from any parameter; default to float32/cpu.
+    dtype = torch.float32
+    device = torch.device("cpu")
+    try:
+        p = next(module_or_likelihood.parameters())
+        dtype = p.dtype
+        device = p.device
+    except Exception:
+        pass
+    return torch.as_tensor(X_np, dtype=dtype, device=device)
+
+
+def _make_gp_predictor(gp_obj):
     """
-    Wrap various GP outputs into a single callable that returns (mean, std) for an (n,d) array X.
-    Supported:
-      - A callable: gp_obj(X) -> (mean, std)  OR (mean, var)
-      - sklearn-like: gp_obj.predict(X, return_std=True)
-      - sklearn-like returning variance: gp_obj.predict(X, return_std=True) -> (mean, std)
-      - GPyTorch-like: gp_obj.posterior(X) with .mean, .variance
+    Return a callable f(X_np) -> (mean_np, std_np).
+    Supports:
+      - (gpytorch_model, likelihood) tuple
+      - gpytorch model with .posterior(...)
+      - sklearn-like: .predict(X, return_std=True)
+      - generic callable: returns (mean, std|var)
+    NOTE: We intentionally check GPyTorch cases BEFORE the generic callable branch.
     """
-    # Case 1: directly callable and returns (mean, std/var)
-    if callable(gp_obj):
-        def _call(X: np.ndarray):
-            out = gp_obj(X)
-            if isinstance(out, tuple) and len(out) >= 2:
-                mean, second = out[:2]
-                mean = _to_numpy(mean).reshape(-1)
-                second = _to_numpy(second).reshape(-1)
-                # Heuristic: if any values < 0 after squaring, it was std. Keep std.
-                # Safer: treat 'second' as std if it has typical magnitude; else var
-                std = np.sqrt(second) if np.any(second > 10 * np.finfo(float).eps) and np.any(second > 1e-14) and np.mean(second) > 1e-12 else second
-                # If that heuristic seems too cute, just assume 'second' is std:
-                # std = second
-                return mean, std
-            raise ValueError("Callable GP must return (mean, std) or (mean, var).")
+    # Case A: tuple/list (model, likelihood)
+    if isinstance(gp_obj, (tuple, list)) and len(gp_obj) >= 2:
+        model, likelihood = gp_obj[:2]
+        def _call(X_np):
+            X_t = _torchify_like(model, X_np)
+            model.eval(); likelihood.eval()
+            with torch.no_grad():
+                preds = likelihood(model(X_t))  # MultivariateNormal
+                mean = _to_numpy(preds.mean).reshape(-1)
+                var = preds.variance
+                if hasattr(var, "to_dense"):
+                    var = var.to_dense()
+                std = np.sqrt(_to_numpy(var).reshape(-1))
+            return mean, std
         return _call
 
-    # Case 2: sklearn-like API
-    if hasattr(gp_obj, "predict"):
-        def _call(X: np.ndarray):
-            mean, std = gp_obj.predict(X, return_std=True)
-            return _to_numpy(mean).reshape(-1), _to_numpy(std).reshape(-1)
-        return _call
-
-    # Case 3: GPyTorch-like posterior
+    # Case B: gpytorch model with .posterior (some wrappers expose this)
     if hasattr(gp_obj, "posterior"):
-        def _call(X: np.ndarray):
-            X_t = torch.as_tensor(X, dtype=torch.get_default_dtype() if torch is not None else torch.float32) if torch is not None else X
+        def _call(X_np):
+            X_t = _torchify_like(gp_obj, X_np)
+            try:
+                gp_obj.eval()
+            except Exception:
+                pass
             with torch.no_grad():
                 post = gp_obj.posterior(X_t)
                 mean = _to_numpy(post.mean).reshape(-1)
-                # post.variance might be Tensor or LazyTensor; try .to_dense() if needed
                 var = post.variance
                 if hasattr(var, "to_dense"):
                     var = var.to_dense()
@@ -375,8 +387,28 @@ def _make_gp_predictor(gp_obj: object) -> Callable[[np.ndarray], Tuple[np.ndarra
             return mean, std
         return _call
 
-    raise TypeError("Unsupported GP object. Pass a callable or a model with .predict(..., return_std=True) or .posterior(...).")
+    # Case C: sklearn-like
+    if hasattr(gp_obj, "predict"):
+        def _call(X_np):
+            mean, std = gp_obj.predict(X_np, return_std=True)
+            return _to_numpy(mean).reshape(-1), _to_numpy(std).reshape(-1)
+        return _call
 
+    # Case D: generic callable returning (mean, std|var)
+    if callable(gp_obj):
+        def _call(X_np):
+            out = gp_obj(X_np)
+            if not (isinstance(out, tuple) and len(out) >= 2):
+                raise ValueError("Callable GP must return (mean, std) or (mean, var).")
+            mean, second = out[:2]
+            mean = _to_numpy(mean).reshape(-1)
+            second = _to_numpy(second).reshape(-1)
+            # Assume second is std unless clearly variance
+            std = np.sqrt(second) if np.any(second < 0) or np.mean(second) > 1e3 else second
+            return mean, std
+        return _call
+
+    raise TypeError("Unsupported GP object. Pass (model, likelihood), a model with .posterior, .predict(..., return_std=True), or a callable.")
 
 def _build_partial_grid(
     X_ref: np.ndarray,
@@ -463,9 +495,17 @@ def plot_y_vs_each_x_from_results_with_gp(
             raise ValueError(f"x_bounds must be a sequence of {d} (min,max) tuples.")
 
     # palette per site
+# palette per site (drop-in replacement)
     uniq_sites = np.unique(sites_all)
-    cmap = plt.cm.get_cmap("tab20", max(len(uniq_sites), 3))
-    color_map = {s: cmap(i % cmap.N) for i, s in enumerate(uniq_sites)}
+    try:
+        cmap = plt.cm.get_cmap("tab20", max(len(uniq_sites), 3))
+    except TypeError:
+        # Older Matplotlib without the N parameter
+        cmap = plt.cm.get_cmap("tab20")
+    color_map = {s: cmap(i % (getattr(cmap, 'N', 20))) for i, s in enumerate(uniq_sites)}
+    
+
+
 
     # make predictor
     gp_predict = _make_gp_predictor(gp_model_or_predictor)
