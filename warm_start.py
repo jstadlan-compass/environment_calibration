@@ -386,6 +386,7 @@ def plot_y_vs_each_x_from_results(
     X_all = np.vstack(X_chunks)        # (N, d)
     Y_all = np.concatenate(Y_chunks)   # (N,)
     sites_all = np.array(site_names)   # (N,)
+    print(sites_all)
 
     d = d_first
     if not x_labels or len(x_labels) != d:
@@ -462,7 +463,7 @@ def main():
 
 
 
-    if ~GLOBAL_ONLY:
+    if not GLOBAL_ONLY:
         # (C) PER-SITE: warm prior & TR-TS
         results = {}
         for site in global_sites:
