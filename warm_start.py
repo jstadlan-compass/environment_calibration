@@ -72,10 +72,10 @@ weights_path = "simulation_inputs/weights.csv"
 def f_sim(X_real: np.ndarray, params: dict, site) -> float:
     
     
-   Y_scores = run_simulation_for_site(site, exp_label, output_dir, calib_coord_path, param_key_path, gs_coord_path, weights_path)
+   #Y_scores = run_simulation_for_site(site, exp_label, output_dir, calib_coord_path, param_key_path, gs_coord_path, weights_path)
     
-   return Y_scores["total_score"]
-
+   #return Y_scores["total_score"]
+   return 100
 
 
 
