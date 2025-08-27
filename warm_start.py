@@ -858,6 +858,11 @@ def plot_y_vs_each_x_from_results_with_site_priors(
                 )
                 first_band_drawn = True
 
+
+            print("xg_np")
+            print(xg_np.shape)
+            print("mu")
+            print(mu.shape)
             ax.plot(
                 xg_np, mu,
                 linestyle=style_for[s],
