@@ -13,12 +13,9 @@ from typing import Dict, List, Tuple, Optional
 
 import numpy as np
 import torch
-import shutil
-import time
 import pandas as pd
 import sys
 # from within environment_calibration_common submodule
-from helpers import load_coordinator_df
 from botorch.models import SingleTaskGP
 from botorch.fit import fit_gpytorch_model
 from gpytorch.mlls import ExactMarginalLogLikelihood
@@ -26,13 +23,13 @@ from gpytorch.kernels import RBFKernel, ScaleKernel, ProductKernel
 from gpytorch.means import Mean, ConstantMean
 from torch.quasirandom import SobolEngine
 from translate_parameters import translate_parameters, get_initial_samples
-from run_sims import submit_sim
-from get_eradication import get_eradication
-from compare_to_data.run_full_comparison import compute_scores_across_site
-sys.path.append("../simulations")
+#from run_sims import submit_sim
+#from get_eradication import get_eradication
+#from compare_to_data.run_full_comparison import compute_scores_across_site
+#sys.path.append("../simulations")
 import manifest as manifest
 from batch_generators.turbo_thompson_sampling import TurboThompsonSampling 
-import run_simulation_for_site
+#import run_simulation_for_site
 
 from typing import Dict, Optional, Sequence, Tuple, Callable, Union
 import matplotlib
