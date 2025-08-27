@@ -414,12 +414,15 @@ def plot_y_vs_each_x_from_results(
         ax.set_ylabel("Y")
         ax.grid(True, linestyle=":", linewidth=0.7, alpha=0.7)
         ax.set_title(f"{title_prefix}: Y vs {x_labels[j]}")
-        leg = ax.legend(title="Site", loc="best", frameon=True, framealpha=0.9)
-        for lh in leg.legendHandles:
-            try:
-                lh.set_sizes([40])
-            except Exception:
-                pass
+        leg = ax.legend(
+            title="Site",
+            loc="best",
+            frameon=True,
+            framealpha=0.9,
+            scatterpoints=1,   # for scatter legends
+            markerscale=1.4,   # scales marker size in legend
+        )
+            
         plt.tight_layout()
 
         if save_dir:
