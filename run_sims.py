@@ -37,7 +37,7 @@ def submit_sim(site=None, nSims=1, characteristic=False, priority=manifest.prior
     experiment.run(wait_until_done=False, platform=platform)
 
     # Additional step to schedule analyzer to run after simulation finished running
-    submit_scheduled_analyzer(experiment, platform, site, analyzer_script='../run_analyzers.py', mem=60000) #, mem=10000)
+    submit_scheduled_analyzer(experiment, platform, site, analyzer_script='run_analyzers.py', mem=60000) #, mem=10000)
 
     # Save experiment id to file
     comps_id_file = get_comps_id_filename(site=site)
