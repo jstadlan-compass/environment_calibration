@@ -31,7 +31,7 @@ from get_eradication import get_eradication
 from compare_to_data.run_full_comparison import compute_scores_across_site
 sys.path.append("../simulations")
 import manifest as manifest
-from turbo_thompson_sampling import TurboThompsonSampling
+from batch_generators.turbo_thompson_sampling import TurboThompsonSampling 
 import run_simulation_for_site
 
 # ──────────────────────────────────────────────────────────────────────────────
