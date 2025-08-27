@@ -34,9 +34,16 @@ import manifest as manifest
 from batch_generators.turbo_thompson_sampling import TurboThompsonSampling 
 import run_simulation_for_site
 
+from typing import Dict, Optional, Sequence, Tuple
+import matplotlib
+import matplotlib.pyplot as plt
+
+
 # ──────────────────────────────────────────────────────────────────────────────
 # 0) USER SETTINGS
 # ──────────────────────────────────────────────────────────────────────────────
+GLOBAL_ONLY = True
+
 
 # Four habitat multipliers with explicit (min, max) ranges
 param_ranges: Dict[str, Tuple[float, float]] = {
@@ -75,7 +82,7 @@ def f_sim(X_real: np.ndarray, params: dict, site) -> float:
    #Y_scores = run_simulation_for_site(site, exp_label, output_dir, calib_coord_path, param_key_path, gs_coord_path, weights_path)
     
    #return Y_scores["total_score"]
-   return 100
+   return np.random.rand()
 
 
 
@@ -314,9 +321,120 @@ def run_site_turbo(site,
     best_y = float(Y_obs[best_idx])
     return best_x_unit, best_y, X_obs, Y_obs
 
+
 # ──────────────────────────────────────────────────────────────────────────────
-# 6) MAIN WORKFLOW
+# 6) PLOTTING FUNCTIONS
 # ──────────────────────────────────────────────────────────────────────────────
+
+
+def _to_numpy(x):
+    """Accept torch.Tensor or array-like; return 1D/2D numpy on CPU."""
+    if torch is not None and isinstance(x, torch.Tensor):
+        return x.detach().cpu().numpy()
+    return np.asarray(x)
+
+
+def plot_y_vs_each_x_from_results(
+    results: Dict[str, Dict[str, object]],
+    *,
+    x_labels: Optional[Sequence[str]] = None,
+    title_prefix: str = "Global seed evaluation",
+    figsize: Tuple[float, float] = (6.5, 4.5),
+    alpha: float = 0.85,
+    save_dir: Optional[str] = None,
+    fmt: str = "png",
+    dpi: int = 160,
+) -> None:
+    """
+    results[site] = {"X": X_u (n_i, d), "Y": Y (n_i,)}, tensors possibly on device.
+    Produces d separate figures: scatter of Y vs X[:, j], colored by site.
+    """
+    # --- collect and validate ---
+    site_names = []
+    X_chunks = []
+    Y_chunks = []
+
+    d_first = None
+    for site, dct in results.items():
+        if "X" not in dct or "Y" not in dct:
+            raise ValueError(f"results['{site}'] must have keys 'X' and 'Y'")
+
+        X_i = _to_numpy(dct["X"])
+        Y_i = _to_numpy(dct["Y"]).reshape(-1)
+
+        if X_i.ndim != 2:
+            raise ValueError(f"results['{site}']['X'] must be 2D, got {X_i.shape}")
+        if Y_i.shape[0] != X_i.shape[0]:
+            raise ValueError(
+                f"results['{site}'] length mismatch: Y={Y_i.shape[0]} vs X rows={X_i.shape[0]}"
+            )
+
+        if d_first is None:
+            d_first = X_i.shape[1]
+        elif X_i.shape[1] != d_first:
+            raise ValueError(
+                f"All sites must share the same X dimensionality; got {d_first} and {X_i.shape[1]} for site '{site}'."
+            )
+
+        X_chunks.append(X_i)
+        Y_chunks.append(Y_i)
+        site_names.extend([site] * X_i.shape[0])
+
+    if d_first is None:
+        raise ValueError("Empty results: no sites found.")
+
+    X_all = np.vstack(X_chunks)        # (N, d)
+    Y_all = np.concatenate(Y_chunks)   # (N,)
+    sites_all = np.array(site_names)   # (N,)
+
+    d = d_first
+    if not x_labels or len(x_labels) != d:
+        x_labels = [f"X[{j}]" for j in range(d)]
+
+    # --- color map per site ---
+    uniq_sites = np.unique(sites_all)
+    cmap = plt.cm.get_cmap("tab20", max(len(uniq_sites), 3))
+    color_map = {s: cmap(i % cmap.N) for i, s in enumerate(uniq_sites)}
+
+    # --- plot: one figure per dimension ---
+    for j in range(d):
+        fig, ax = plt.subplots(figsize=figsize)
+        for s in uniq_sites:
+            mask = (sites_all == s)
+            ax.scatter(
+                X_all[mask, j],
+                Y_all[mask],
+                label=str(s),
+                s=28,
+                alpha=alpha,
+                edgecolors="none",
+                c=[color_map[s]],
+            )
+        ax.set_xlabel(x_labels[j])
+        ax.set_ylabel("Y")
+        ax.grid(True, linestyle=":", linewidth=0.7, alpha=0.7)
+        ax.set_title(f"{title_prefix}: Y vs {x_labels[j]}")
+        leg = ax.legend(title="Site", loc="best", frameon=True, framealpha=0.9)
+        for lh in leg.legendHandles:
+            try:
+                lh.set_sizes([40])
+            except Exception:
+                pass
+        plt.tight_layout()
+
+        if save_dir:
+            os.makedirs(save_dir, exist_ok=True)
+            fname = f"y_vs_{x_labels[j].replace(' ', '_').replace('[','').replace(']','')}.{fmt}"
+            fig.savefig(os.path.join(save_dir, fname), dpi=dpi)
+            plt.close(fig)
+        else:
+            plt.show()
+            
+# ──────────────────────────────────────────────────────────────────────────────
+# 7) MAIN WORKFLOW
+# ──────────────────────────────────────────────────────────────────────────────
+
+
 
 def main():
     torch.set_default_dtype(torch.double)
@@ -328,42 +446,52 @@ def main():
     global_cache = evaluate_global_seeds(global_sites, N_seed, seed_dir,
                                          seed=123, params={}, device=device)
 
+
+
     # (B) Fit GLOBAL GP on [params] × [site features] with product kernel
     global_gp, feats_norm, (fmin, fmax) = fit_global_gp(global_cache, site_features,
                                                         only_sites=global_sites, device=device)
+    
 
-    # (C) PER-SITE: warm prior & TR-TS
-    results = {}
-    for site in global_sites:
-        # Build warm prior μ_site(x_unit)
-        D = global_cache[site]["X"].size(1)
-        site_feat_norm = feats_norm[site]
-        prior_fn = make_site_prior_fn(global_gp, site_feat_norm, D=D, device=device)
+    matplotlib.use("Agg")
+    plot_y_vs_each_x_from_results(global_cache, x_labels=None, save_dir="figs/warm_start", fmt="png", dpi=160)
+    
 
-        best_x_unit, best_y, X_hist, Y_hist = run_site_turbo(
-            site=site,
-            cached=global_cache[site],
-            prior_fn=prior_fn,
-            n_iter=20,
-            batch_size=4,
-            n_candidates=2000,
-            device=device,
-        )
 
-        # Save per-site results
-        os.makedirs("site_results", exist_ok=True)
-        torch.save(X_hist.cpu(), f"site_results/X_hist_site{site}.pt")
-        torch.save(Y_hist.cpu(), f"site_results/Y_hist_site{site}.pt")
-        results[site] = {
-            "best_x_unit": best_x_unit.cpu().numpy().tolist(),
-            "best_score": best_y,
-        }
-        print(f"[site {site}] best score = {best_y:.6f} at unit X = {best_x_unit.cpu().numpy()}")
 
-    # Write summary
-    with open("site_results/summary.json", "w") as f:
-        json.dump(results, f, indent=2)
-    print("Saved site_results/summary.json")
+    if ~GLOBAL_ONLY:
+        # (C) PER-SITE: warm prior & TR-TS
+        results = {}
+        for site in global_sites:
+            # Build warm prior μ_site(x_unit)
+            D = global_cache[site]["X"].size(1)
+            site_feat_norm = feats_norm[site]
+            prior_fn = make_site_prior_fn(global_gp, site_feat_norm, D=D, device=device)
+    
+            best_x_unit, best_y, X_hist, Y_hist = run_site_turbo(
+                site=site,
+                cached=global_cache[site],
+                prior_fn=prior_fn,
+                n_iter=20,
+                batch_size=4,
+                n_candidates=2000,
+                device=device,
+            )
+    
+            # Save per-site results
+            os.makedirs("site_results", exist_ok=True)
+            torch.save(X_hist.cpu(), f"site_results/X_hist_site{site}.pt")
+            torch.save(Y_hist.cpu(), f"site_results/Y_hist_site{site}.pt")
+            results[site] = {
+                "best_x_unit": best_x_unit.cpu().numpy().tolist(),
+                "best_score": best_y,
+            }
+            print(f"[site {site}] best score = {best_y:.6f} at unit X = {best_x_unit.cpu().numpy()}")
+    
+        # Write summary
+        with open("site_results/summary.json", "w") as f:
+            json.dump(results, f, indent=2)
+        print("Saved site_results/summary.json")
 
 # ──────────────────────────────────────────────────────────────────────────────
 # 7) (Optional) Hook into bo.py:initRandom instead of local Sobol

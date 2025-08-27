@@ -72,8 +72,17 @@ def my_func_per_site(X,coord_df):
 
     if os.path.exists(os.path.join(manifest.simulation_output_filepath,site)):
         shutil.rmtree(os.path.join(manifest.simulation_output_filepath,site))
-    submit_sim(site=site, nSims=n_sims, X=df, coord_df = coord_df)     
+    uid = submit_sim(site=site, nSims=n_sims, X=df, coord_df = coord_df)     
   
+    # while True:
+    #     if os.path:
+    #         platform = Platform('SLURM_LOCAL',job_directory=manifest.job_directory, mem=80000)
+    #         comps_id_file = get_comps_id_filename(site=site)
+    #         analyze_experiment(platform, exp_id, wdir)
+    #         break
+    #     time.sleep(60)   
+  
+    
     while True:
         if os.path.exists(os.path.join(manifest.simulation_output_filepath,site,'finished.txt')):
             print("simulation finished running!")
