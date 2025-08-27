@@ -7,6 +7,8 @@ from idmtools.core.platform_factory import Platform
 # from within environment_calibration_common submodule
 from helpers import get_comps_id_filename, load_coordinator_df
 from analyzers.analyze import analyze_experiment
+from datetime import datetime
+7
 # from source 'simulations' directory
 sys.path.append("../simulations")
 import manifest as manifest
@@ -23,7 +25,9 @@ def run_analyzers(site: str, expid: str = None, characteristic: bool = False) ->
 
     """
     # debug:
-    print('are we getting this far?')
+    current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    with open(os.path.join(os.path.expanduser("~"), "log_analyzer_call.txt"), 'a') as f:
+        f.write(f"Current time: {current_time}\n")
     
     #platform = Platform(manifest.platform_name)
     platform = Platform('SLURM_LOCAL',job_directory=manifest.job_directory, mem=80000)
