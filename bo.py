@@ -51,14 +51,14 @@ class BO:
         if checkpointdir != "":
             pathlib.Path(checkpointdir).mkdir(parents=True, exist_ok=True)
 
-            torch.save(self.X, checkpointdir + "/X.pt")
-            torch.save(self.Y, checkpointdir + "/Y.pt")
-            torch.save(self.Y_pred_mean, checkpointdir + "/Y_pred_mean.pt")
-            torch.save(self.Y_pred_var, checkpointdir + "/Y_pred_var.pt")
-            torch.save(self.length_scales, checkpointdir + "/length_scales.pt")
-            torch.save(self.iterations, checkpointdir + "/iterations.pt")
-            torch.save(self.timer_model, checkpointdir + "/timer_model.pt")
-            torch.save(self.timer_batch_generator, checkpointdir + "/timer_batch_generator.pt")
+            torch.save(self.X, checkpointdir + "/X" + self.problem.site + ".pt")
+            torch.save(self.Y, checkpointdir + "/Y" +  + self.problem.site + ".pt")
+            torch.save(self.Y_pred_mean, checkpointdir + "/Y_pred_mean"  + self.problem.site + ".pt")
+            torch.save(self.Y_pred_var, checkpointdir + "/Y_pred_var" + self.problem.site + ".pt")
+            torch.save(self.length_scales, checkpointdir + "/length_scales" + self.problem.site + ".pt")
+            torch.save(self.iterations, checkpointdir + "/iterations"  + self.problem.site + ".pt")
+            torch.save(self.timer_model, checkpointdir + "/timer_model"  + self.problem.site + ".pt")
+            torch.save(self.timer_batch_generator, checkpointdir + "/timer_batch_generator" + self.problem.site + ".pt")
             ## TO ADD: copy contents of initial output directory so we can update later, then may need to write one to open and run only the LL (or other bits as needed), update, and save initial values - probably should do in a separate script that only runs when we want...
             self.batch_generator.write_checkpoint(checkpointdir)
 
@@ -68,14 +68,14 @@ class BO:
         checkpoint = False
         if checkpointdir != "":
             try:
-                self.X = torch.load(checkpointdir + "/X.pt", map_location=torch.device(self.device)).to(dtype=self.dtype, device=self.device)
-                self.Y = torch.load(checkpointdir + "/Y.pt", map_location=torch.device(self.device)).to(dtype=self.dtype, device=self.device)
-                self.Y_pred_mean = torch.load(checkpointdir + "/Y_pred_mean.pt", map_location=torch.device(self.device)).to(dtype=self.dtype, device=self.device)
-                self.Y_pred_var = torch.load(checkpointdir + "/Y_pred_var.pt", map_location=torch.device(self.device)).to(dtype=self.dtype, device=self.device)
-                self.length_scales = torch.load(checkpointdir + "/length_scales.pt", map_location=torch.device(self.device)).to(dtype=self.dtype, device=self.device)
-                self.iterations = torch.load(checkpointdir + "/iterations.pt", map_location=torch.device(self.device)).to(dtype=self.dtype, device=self.device)
-                self.timer_model = torch.load(checkpointdir + "/timer_model.pt", map_location=torch.device(self.device)).to(dtype=self.dtype, device=self.device)
-                self.timer_batch_generator = torch.load(checkpointdir + "/timer_batch_generator.pt", map_location=torch.device(self.device)).to(dtype=self.dtype, device=self.device)
+                self.X = torch.load(checkpointdir + "/X" + self.problem.site + ".pt", map_location=torch.device(self.device)).to(dtype=self.dtype, device=self.device)
+                self.Y = torch.load("/Y" +  + self.problem.site + ".pt", map_location=torch.device(self.device)).to(dtype=self.dtype, device=self.device)
+                self.Y_pred_mean = torch.load(checkpointdir + "/Y_pred_mean"  + self.problem.site + ".pt", map_location=torch.device(self.device)).to(dtype=self.dtype, device=self.device)
+                self.Y_pred_var = torch.load(checkpointdir + "/Y_pred_var" + self.problem.site + ".pt", map_location=torch.device(self.device)).to(dtype=self.dtype, device=self.device)
+                self.length_scales = torch.load(checkpointdir + "/length_scales" + self.problem.site + ".pt", map_location=torch.device(self.device)).to(dtype=self.dtype, device=self.device)
+                self.iterations = torch.load(checkpointdir + "/iterations"  + self.problem.site + ".pt", map_location=torch.device(self.device)).to(dtype=self.dtype, device=self.device)
+                self.timer_model = torch.load(checkpointdir + "/timer_model"  + self.problem.site + ".pt", map_location=torch.device(self.device)).to(dtype=self.dtype, device=self.device)
+                self.timer_batch_generator = torch.load(ccheckpointdir + "/timer_batch_generator" + self.problem.site + ".pt", map_location=torch.device(self.device)).to(dtype=self.dtype, device=self.device)
                 checkpoint = True
             except Exception as e: print(e, flush=True)
 

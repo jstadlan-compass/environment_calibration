@@ -31,7 +31,7 @@ param_key=pd.read_csv("simulation_inputs/parameter_key.csv")
 
 # Define the Problem, it must be a functor
 class Problem:
-    def __init__(self,workdir="checkpoints/emod", incidence_agebin=None, prevalence_agebin=None, coord_df=None):
+    def __init__(self,workdir="checkpoints/emod", incidence_agebin=None, prevalence_agebin=None, coord_df=None, site=None):
         self.dim = int(param_key.shape[0])  #4 # mandatory dimension
         self.ymax = None #max value
         self.best = None
@@ -40,6 +40,7 @@ class Problem:
         self.incidence_agebin = incidence_agebin
         self.prevalence_agebin = prevalence_agebin
         self.coord_df = coord_df
+        self.site = site
         
         
         try:
@@ -53,7 +54,6 @@ class Problem:
     # The input is a vector that contains multiple set of parameters to be evaluated
     def __call__(self,X):
         
-        Site = coord_df.loc['site']['value']
         wdir=os.path.join(f"{self.workdir}/LF_{self.n}")
         os.makedirs(wdir,exist_ok=True)
             
@@ -94,23 +94,23 @@ class Problem:
             self.best.to_csv(f"{self.workdir}/LF_{self.n}/emod.best.csv")
             Y0['round'] = [self.n] * len(Y0)
             Y0.to_csv(f"{self.workdir}/all_LL.csv")
-            mEIR = save_rangeEIR(site=Site, wdir = f"{self.workdir}/LF_{self.n}")
+            mEIR = save_rangeEIR(site=self.site, wdir = f"{self.workdir}/LF_{self.n}")
             mEIR.to_csv(f"{self.workdir}/LF_{self.n}/EIR_range.csv")
            
             if(self.coord_df.at["incidence_comparison","value"]):
-                ACI = save_AnnualIncidence(site=Site,agebin=self.incidence_agebin, 
+                ACI = save_AnnualIncidence(site=self.site,agebin=self.incidence_agebin, 
                                            wdir =f"{self.workdir}/LF_{self.n}")
                 ACI.to_csv(f"{self.workdir}/LF_{self.n}/ACI.csv")
-                plot_incidence(site=Site, agebin=self.incidence_agebin,
+                plot_incidence(site=self.site, agebin=self.incidence_agebin,
                                plt_dir=os.path.join(f"{self.workdir}/LF_{self.n}"), 
                                wdir=os.path.join(f"{self.workdir}/LF_{self.n}"))
             if(self.coord_df.at["prevalence_comparison","value"]):
                 if(self.coord_df.at["prevalence_comparison_diagnostic","value"]=="PCR"):
-                    plot_allAge_prevalence(site=Site, 
+                    plot_allAge_prevalence(site=self.site, 
                                            plt_dir=os.path.join(f"{self.workdir}/LF_{self.n}"), 
                                            wdir=os.path.join(f"{self.workdir}/LF_{self.n}"))
                 if(self.coord_df.at["prevalence_comparison_diagnostic","value"]=="Microscopy"):
-                    plot_pfpr_microscopy(site=Site,
+                    plot_pfpr_microscopy(site=self.site,
                                          plt_dir=os.path.join(f"{self.workdir}/LF_{self.n}"),
                                          wdir=os.path.join(f"{self.workdir}/LF_{self.n}"),
                                          agebin=self.prevalence_agebin)
@@ -129,23 +129,23 @@ class Problem:
                 best_p = max(pset,key=pset.get)
                 self.best = translate_parameters(param_key,best_x,best_p)
                 self.best.to_csv(f"{self.workdir}/LF_{self.n}/emod.best.csv")
-                mEIR = save_rangeEIR(site=Site, wdir = f"{self.workdir}/LF_{self.n}")
+                mEIR = save_rangeEIR(site=self.site, wdir = f"{self.workdir}/LF_{self.n}")
                 mEIR.to_csv(f"{self.workdir}/LF_{self.n}/EIR_range.csv")
                
                 if(self.coord_df.at["incidence_comparison","value"]):
-                    ACI = save_AnnualIncidence(site=Site,agebin=self.incidence_agebin, 
+                    ACI = save_AnnualIncidence(site=self.site,agebin=self.incidence_agebin, 
                                                wdir =f"{self.workdir}/LF_{self.n}")
                     ACI.to_csv(f"{self.workdir}/LF_{self.n}/ACI.csv")
-                    plot_incidence(site=Site, agebin=self.incidence_agebin,
+                    plot_incidence(site=self.site, agebin=self.incidence_agebin,
                                    plt_dir=os.path.join(f"{self.workdir}/LF_{self.n}"), 
                                    wdir=os.path.join(f"{self.workdir}/LF_{self.n}"))
                 if(self.coord_df.at["prevalence_comparison","value"]):
                     if(self.coord_df.at["prevalence_comparison_diagnostic","value"]=="PCR"):
-                        plot_allAge_prevalence(site=Site, 
+                        plot_allAge_prevalence(site=self.site, 
                                                plt_dir=os.path.join(f"{self.workdir}/LF_{self.n}"), 
                                                wdir=os.path.join(f"{self.workdir}/LF_{self.n}"))
                     if(cself.oord_df.at["prevalence_comparison_diagnostic","value"]=="Microscopy"):
-                        plot_pfpr_microscopy(site=Site,
+                        plot_pfpr_microscopy(site=self.site,
                                              plt_dir=os.path.join(f"{self.workdir}/LF_{self.n}"),
                                              wdir=os.path.join(f"{self.workdir}/LF_{self.n}"),
                                              agebin=self.prevalence_agebin)
@@ -186,7 +186,8 @@ def run_calib(Site,exp_label,coord_df):
     incidence_agebin=float(coord_df.at['incidence_comparison_agebin','value'])
     prevalence_agebin=float(coord_df.at['prevalence_comparison_agebin','value'])
 
-    problem = Problem(workdir=f"output/{exp_label}",incidence_agebin=incidence_agebin,prevalence_agebin=prevalence_agebin)
+    problem = Problem(workdir=f"output/{exp_label}",incidence_agebin=incidence_agebin,
+                      prevalence_agebin=prevalence_agebin, coord_df=coord_df, site=Site)
     
     # at beginning of workflow, cleanup all sbatch scripts for analysis
     clean_analyzers()
@@ -234,6 +235,9 @@ def run_calib(Site,exp_label,coord_df):
 
 if __name__ == "__main__":
 
+    
+    selected_sites = ['dafra', 'titao','gourcy']
+
     gs_coord_path = manifest.global_simulation_coordinator_path
     
     # You can use manifest for these arguments, or specify them directly
@@ -242,7 +246,7 @@ if __name__ == "__main__":
     gs_coord_path = manifest.global_simulation_coordinator_path
     gs_coord_df = pd.read_csv(gs_coord_path)
     
-    for site in gs_coord_df['site']:
+    for site in selected_sites:
         # xtract a local simulation coordinator for the site
         # Find the row for the specified site
         site_row = gs_coord_df.loc[gs_coord_df["site"] == site]
@@ -251,4 +255,6 @@ if __name__ == "__main__":
         coord_df = pd.DataFrame(list(row_dict.items()), columns=["option", "value"]).set_index("option")
 
         exp_label_per_site = exp_label_base + "_" + site
+        print('Running calibration for: ')
+        print(site)
         run_calib(site,exp_label_per_site,coord_df)
