@@ -11,4 +11,4 @@
 
 module purge all
 
-/home/tmh6260/my_environments/pytorch_test/bin/python run_calib.py
+/gpfs/home/ykc2461/environments/torch_env/bin/python run_calib.py
