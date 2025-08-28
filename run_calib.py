@@ -27,7 +27,7 @@ from run_full_comparison import plot_allAge_prevalence,plot_incidence,compute_sc
 
 
 # param key needed to define the Problem
-param_key=pd.read_csv("parameter_key.csv")
+param_key=pd.read_csv("simulation_inputs/parameter_key.csv")
 
 # Define the Problem, it must be a functor
 class Problem:
@@ -55,7 +55,7 @@ class Problem:
         wdir=os.path.join(f"{self.workdir}/LF_{self.n}")
         os.makedirs(wdir,exist_ok=True)
             
-        Y0=myFuncPerSite(X,coord_df)
+        Y0=myFuncPerSite(X,coord_df,wdir)
         # Clean up any non-score columns returned by myfunc
         ps = Y0['param_set']
         Y0 = Y0.filter(like='_score')

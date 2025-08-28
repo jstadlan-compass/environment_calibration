@@ -17,8 +17,7 @@ sys.path.append("../simulations")
 import manifest as manifest
 
 
-def my_func(X,wdir):
-    coord_df=load_coordinator_df()
+def my_func(X,wdir,coord_df):
     site = coord_df.at['site','value']
     sites =[site]
     n_sims = int(coord_df.at['nSims','value'])
@@ -53,7 +52,7 @@ def my_func(X,wdir):
     return(Y)
     
     
-def my_func_per_site(X,coord_df):
+def my_func_per_site(X,coord_df,wdir):
     site = coord_df.at['site','value']
     n_sims = int(coord_df.at['nSims','value'])
     # Supply parameters to X
@@ -66,9 +65,7 @@ def my_func_per_site(X,coord_df):
         a['param_set'] = np.repeat(i,len(a))
         i=i+1
         df = pd.concat([df,a])
-  
-    #debug filepaths for climate
-    print(coord_df.loc['climate_filepath']['value'])
+    df.to_csv(f"{wdir}/translated_params.csv")
 
     if os.path.exists(os.path.join(manifest.simulation_output_filepath,site)):
         shutil.rmtree(os.path.join(manifest.simulation_output_filepath,site))
