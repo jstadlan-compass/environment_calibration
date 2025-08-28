@@ -20,47 +20,25 @@ from post_calibration_analysis import post_calibration_analysis
 sys.path.append("../environment_calibration_common")
 from clean_all import clean_analyzers, clean_logs, clean_COMPS_ID
 from translate_parameters import translate_parameters
-from helpers import load_coordinator_df
 from my_func import my_func_per_site as myFuncPerSite
 
 sys.path.append("../environment_calibration_common/compare_to_data")
 from run_full_comparison import plot_allAge_prevalence,plot_incidence,compute_scores_across_site,save_rangeEIR,save_AnnualIncidence,plot_pfpr_microscopy 
 
 
-####################################
-# Experiment details - this is the only section you need to edit with the script
-Site=manifest.SITE
-exp_label = manifest.EXPERIMENT_LABEL
-####################################
-
-output_dir = f"output/{exp_label}"
-best_dir = f"output/{exp_label}" 
-
-calib_coord = pd.read_csv(manifest.calibration_coordinator_path)
-
-# Botorch details
-calib_coord = calib_coord.set_index("site")
-init_samples=int(calib_coord.at[Site,"init_size"])
-init_batches =  int(calib_coord.at[Site,"init_batches"])  
-emulator_batch_size = int(calib_coord.at[Site, 'batch_size'])
-gp_max_eval = int(calib_coord.at[Site, 'max_eval'])
-failure_limit = int(calib_coord.at[Site, 'failure_limit'])
-success_limit = int(calib_coord.at[Site,'success_limit'])
-
+# param key needed to define the Problem
 param_key=pd.read_csv("parameter_key.csv")
-
-coord_df=load_coordinator_df()
-incidence_agebin=float(coord_df.at['incidence_comparison_agebin','value'])
-prevalence_agebin=float(coord_df.at['prevalence_comparison_agebin','value'])
 
 # Define the Problem, it must be a functor
 class Problem:
-    def __init__(self,workdir="checkpoints/emod"):
+    def __init__(self,workdir="checkpoints/emod", incidence_agebin=None, prevalence_agebin=None):
         self.dim = int(param_key.shape[0])  #4 # mandatory dimension
         self.ymax = None #max value
         self.best = None
         self.n = 0
         self.workdir = workdir
+        self.incidence_agebin = incidence_agebin
+        self.prevalence_agebin = prevalence_agebin
         
         try:
             self.ymax = np.loadtxt(f"{self.workdir}/emod.ymax.txt").astype(float)
@@ -71,7 +49,7 @@ class Problem:
         os.makedirs(os.path.relpath(f'{self.workdir}/'), exist_ok=True)
 
     # The input is a vector that contains multiple set of parameters to be evaluated
-    def __call__(self,X,coord_df):
+    def __call__(self,X,coord_df=None):
         
         
         wdir=os.path.join(f"{self.workdir}/LF_{self.n}")
@@ -118,10 +96,10 @@ class Problem:
             mEIR.to_csv(f"{self.workdir}/LF_{self.n}/EIR_range.csv")
            
             if(coord_df.at["incidence_comparison","value"]):
-                ACI = save_AnnualIncidence(site=Site,agebin=incidence_agebin, 
+                ACI = save_AnnualIncidence(site=Site,agebin=self.incidence_agebin, 
                                            wdir =f"{self.workdir}/LF_{self.n}")
                 ACI.to_csv(f"{self.workdir}/LF_{self.n}/ACI.csv")
-                plot_incidence(site=Site, agebin=incidence_agebin,
+                plot_incidence(site=Site, agebin=self.incidence_agebin,
                                plt_dir=os.path.join(f"{self.workdir}/LF_{self.n}"), 
                                wdir=os.path.join(f"{self.workdir}/LF_{self.n}"))
             if(coord_df.at["prevalence_comparison","value"]):
@@ -133,7 +111,7 @@ class Problem:
                     plot_pfpr_microscopy(site=Site,
                                          plt_dir=os.path.join(f"{self.workdir}/LF_{self.n}"),
                                          wdir=os.path.join(f"{self.workdir}/LF_{self.n}"),
-                                         agebin=prevalence_agebin)
+                                         agebin=self.prevalence_agebin)
             shutil.copytree(f"{manifest.simulation_output_filepath}",f"{self.workdir}/LF_{self.n}/SO")
             self.n += 1
             np.savetxt(f"{self.workdir}/emod.n.txt", [self.n])
@@ -153,10 +131,10 @@ class Problem:
                 mEIR.to_csv(f"{self.workdir}/LF_{self.n}/EIR_range.csv")
                
                 if(coord_df.at["incidence_comparison","value"]):
-                    ACI = save_AnnualIncidence(site=Site,agebin=incidence_agebin, 
+                    ACI = save_AnnualIncidence(site=Site,agebin=self.incidence_agebin, 
                                                wdir =f"{self.workdir}/LF_{self.n}")
                     ACI.to_csv(f"{self.workdir}/LF_{self.n}/ACI.csv")
-                    plot_incidence(site=Site, agebin=incidence_agebin,
+                    plot_incidence(site=Site, agebin=self.incidence_agebin,
                                    plt_dir=os.path.join(f"{self.workdir}/LF_{self.n}"), 
                                    wdir=os.path.join(f"{self.workdir}/LF_{self.n}"))
                 if(coord_df.at["prevalence_comparison","value"]):
@@ -168,7 +146,7 @@ class Problem:
                         plot_pfpr_microscopy(site=Site,
                                              plt_dir=os.path.join(f"{self.workdir}/LF_{self.n}"),
                                              wdir=os.path.join(f"{self.workdir}/LF_{self.n}"),
-                                             agebin=prevalence_agebin)
+                                             agebin=self.prevalence_agebin)
                 np.savetxt(f"{self.workdir}/emod.ymax.txt", [self.ymax])
                 np.savetxt(f"{self.workdir}/LF_{self.n}/emod.ymax.txt", [self.ymax])
             Y0['round'] = [self.n] * len(Y0)
@@ -183,46 +161,92 @@ class Problem:
             clean_COMPS_ID()
         return torch.tensor(xc,dtype=torch.float64), torch.tensor(yc)
 
-problem = Problem(workdir=f"output/{exp_label}")
-
-# at beginning of workflow, cleanup all sbatch scripts for analysis
-clean_analyzers()
 
 
-# Create the GP model
-# See emulators/GP.py for a list of GP models
-# Or add your own, see: https://botorch.org/docs/models
-model = ExactGP(noise_constraint=GreaterThan(1e-6))
 
-# Create batch generator(s)
-tts = TurboThompsonSampling(batch_size=emulator_batch_size, 
-                            failure_tolerance=failure_limit,
-                            success_tolerance=success_limit, 
-                            dim=problem.dim) #64
+def run_calib(Site,exp_label,coord_df):
 
-# Create the workflow
-bo = BO(problem=problem, model=model, batch_generator=tts, checkpointdir=output_dir, max_evaluations=gp_max_eval)
+    output_dir = f"output/{exp_label}"
+    best_dir = f"output/{exp_label}" 
 
-# Sample and evaluate sets of parameters randomly drawn from the unit cube
-#bo.initRandom(2)
+    calib_coord = pd.read_csv(manifest.calibration_coordinator_path)
 
-bo.initRandom(init_samples,n_batches = init_batches)
-
-# Run the optimization loop
-bo.run()
-
-##### Post-calibration steps
-
-# This section calls on the overall post_calibration_analysis pipeline, and
-# will only run once the max_eval limit has been reached in the fitting
-# process. By default, all relevant steps are included
-
-post_calibration_analysis(experiment=exp_label,
-                          length_scales_by_objective=False,           # Fit single-task GP per site-metric (within-host only)
-                          length_scales_by_environment_objective=True,# Fit single-task GP per score_type  (environment only)
-                          length_scales_plot=True,                    # Plot length-scales for overall score
-                          prediction_plot=True,                       # Plot predictions, starting @ exclude_count
-                          exclude_count=init_samples,
-                          timer_plot=True)                            # Plot emulator and acquisition timing
+    # Botorch details
+    calib_coord = calib_coord.set_index("site")
+    init_samples=int(calib_coord.at[Site,"init_size"])
+    init_batches =  int(calib_coord.at[Site,"init_batches"])  
+    emulator_batch_size = int(calib_coord.at[Site, 'batch_size'])
+    gp_max_eval = int(calib_coord.at[Site, 'max_eval'])
+    failure_limit = int(calib_coord.at[Site, 'failure_limit'])
+    success_limit = int(calib_coord.at[Site,'success_limit'])
 
 
+    incidence_agebin=float(coord_df.at['incidence_comparison_agebin','value'])
+    prevalence_agebin=float(coord_df.at['prevalence_comparison_agebin','value'])
+
+    problem = Problem(workdir=f"output/{exp_label}",incidence_agebin=incidence_agebin,prevalence_agebin=prevalence_agebin)
+    
+    # at beginning of workflow, cleanup all sbatch scripts for analysis
+    clean_analyzers()
+    
+    
+    # Create the GP model
+    # See emulators/GP.py for a list of GP models
+    # Or add your own, see: https://botorch.org/docs/models
+    model = ExactGP(noise_constraint=GreaterThan(1e-6))
+    
+    # Create batch generator(s)
+    tts = TurboThompsonSampling(batch_size=emulator_batch_size, 
+                                failure_tolerance=failure_limit,
+                                success_tolerance=success_limit, 
+                                dim=problem.dim) #64
+    
+    # Create the workflow
+    bo = BO(problem=problem, model=model, batch_generator=tts, checkpointdir=output_dir, max_evaluations=gp_max_eval)
+    
+    # Sample and evaluate sets of parameters randomly drawn from the unit cube
+    #bo.initRandom(2)
+    
+    bo.initRandom(init_samples,n_batches = init_batches)
+    
+    # Run the optimization loop
+    bo.run()
+    
+    ##### Post-calibration steps
+    
+    # This section calls on the overall post_calibration_analysis pipeline, and
+    # will only run once the max_eval limit has been reached in the fitting
+    # process. By default, all relevant steps are included
+    
+    post_calibration_analysis(experiment=exp_label,
+                              length_scales_by_objective=False,           # Fit single-task GP per site-metric (within-host only)
+                              length_scales_by_environment_objective=True,# Fit single-task GP per score_type  (environment only)
+                              length_scales_plot=True,                    # Plot length-scales for overall score
+                              prediction_plot=True,                       # Plot predictions, starting @ exclude_count
+                              exclude_count=init_samples,
+                              timer_plot=True)                            # Plot emulator and acquisition timing
+    
+
+
+
+
+if __name__ == "__main__":
+
+    gs_coord_path = manifest.global_simulation_coordinator_path
+    
+    # You can use manifest for these arguments, or specify them directly
+    exp_label_base = manifest.EXPERIMENT_LABEL
+    param_key_path = manifest.parameter_key_path
+    gs_coord_path = manifest.global_simulation_coordinator_path
+    gs_coord_df = pd.read_csv(gs_coord_path)
+    
+    for site in gs_coord_df['site']:
+        # xtract a local simulation coordinator for the site
+        # Find the row for the specified site
+        site_row = gs_coord_df.loc[gs_coord_df["site"] == site]
+        # Convert the row to a coord_df-like DataFrame: index is keys, column is 'value'
+        row_dict = site_row.iloc[0].to_dict()
+        coord_df = pd.DataFrame(list(row_dict.items()), columns=["option", "value"]).set_index("option")
+
+        exp_label_per_site = exp_label_base + "_" + site
+        run_calib(site,exp_label_per_site,coord_df)
