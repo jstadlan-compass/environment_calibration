@@ -31,7 +31,7 @@ param_key=pd.read_csv("simulation_inputs/parameter_key.csv")
 
 # Define the Problem, it must be a functor
 class Problem:
-    def __init__(self,workdir="checkpoints/emod", incidence_agebin=None, prevalence_agebin=None):
+    def __init__(self,workdir="checkpoints/emod", incidence_agebin=None, prevalence_agebin=None, coord_df=None):
         self.dim = int(param_key.shape[0])  #4 # mandatory dimension
         self.ymax = None #max value
         self.best = None
@@ -39,6 +39,8 @@ class Problem:
         self.workdir = workdir
         self.incidence_agebin = incidence_agebin
         self.prevalence_agebin = prevalence_agebin
+        self.coord_df = coord_df
+        
         
         try:
             self.ymax = np.loadtxt(f"{self.workdir}/emod.ymax.txt").astype(float)
@@ -49,9 +51,9 @@ class Problem:
         os.makedirs(os.path.relpath(f'{self.workdir}/'), exist_ok=True)
 
     # The input is a vector that contains multiple set of parameters to be evaluated
-    def __call__(self,X,coord_df=None):
+    def __call__(self,X):
         
-        
+        Site = coord_df.loc['site']['value']
         wdir=os.path.join(f"{self.workdir}/LF_{self.n}")
         os.makedirs(wdir,exist_ok=True)
             
@@ -95,19 +97,19 @@ class Problem:
             mEIR = save_rangeEIR(site=Site, wdir = f"{self.workdir}/LF_{self.n}")
             mEIR.to_csv(f"{self.workdir}/LF_{self.n}/EIR_range.csv")
            
-            if(coord_df.at["incidence_comparison","value"]):
+            if(self.coord_df.at["incidence_comparison","value"]):
                 ACI = save_AnnualIncidence(site=Site,agebin=self.incidence_agebin, 
                                            wdir =f"{self.workdir}/LF_{self.n}")
                 ACI.to_csv(f"{self.workdir}/LF_{self.n}/ACI.csv")
                 plot_incidence(site=Site, agebin=self.incidence_agebin,
                                plt_dir=os.path.join(f"{self.workdir}/LF_{self.n}"), 
                                wdir=os.path.join(f"{self.workdir}/LF_{self.n}"))
-            if(coord_df.at["prevalence_comparison","value"]):
-                if(coord_df.at["prevalence_comparison_diagnostic","value"]=="PCR"):
+            if(self.coord_df.at["prevalence_comparison","value"]):
+                if(self.coord_df.at["prevalence_comparison_diagnostic","value"]=="PCR"):
                     plot_allAge_prevalence(site=Site, 
                                            plt_dir=os.path.join(f"{self.workdir}/LF_{self.n}"), 
                                            wdir=os.path.join(f"{self.workdir}/LF_{self.n}"))
-                if(coord_df.at["prevalence_comparison_diagnostic","value"]=="Microscopy"):
+                if(self.coord_df.at["prevalence_comparison_diagnostic","value"]=="Microscopy"):
                     plot_pfpr_microscopy(site=Site,
                                          plt_dir=os.path.join(f"{self.workdir}/LF_{self.n}"),
                                          wdir=os.path.join(f"{self.workdir}/LF_{self.n}"),
@@ -130,19 +132,19 @@ class Problem:
                 mEIR = save_rangeEIR(site=Site, wdir = f"{self.workdir}/LF_{self.n}")
                 mEIR.to_csv(f"{self.workdir}/LF_{self.n}/EIR_range.csv")
                
-                if(coord_df.at["incidence_comparison","value"]):
+                if(self.coord_df.at["incidence_comparison","value"]):
                     ACI = save_AnnualIncidence(site=Site,agebin=self.incidence_agebin, 
                                                wdir =f"{self.workdir}/LF_{self.n}")
                     ACI.to_csv(f"{self.workdir}/LF_{self.n}/ACI.csv")
                     plot_incidence(site=Site, agebin=self.incidence_agebin,
                                    plt_dir=os.path.join(f"{self.workdir}/LF_{self.n}"), 
                                    wdir=os.path.join(f"{self.workdir}/LF_{self.n}"))
-                if(coord_df.at["prevalence_comparison","value"]):
-                    if(coord_df.at["prevalence_comparison_diagnostic","value"]=="PCR"):
+                if(self.coord_df.at["prevalence_comparison","value"]):
+                    if(self.coord_df.at["prevalence_comparison_diagnostic","value"]=="PCR"):
                         plot_allAge_prevalence(site=Site, 
                                                plt_dir=os.path.join(f"{self.workdir}/LF_{self.n}"), 
                                                wdir=os.path.join(f"{self.workdir}/LF_{self.n}"))
-                    if(coord_df.at["prevalence_comparison_diagnostic","value"]=="Microscopy"):
+                    if(cself.oord_df.at["prevalence_comparison_diagnostic","value"]=="Microscopy"):
                         plot_pfpr_microscopy(site=Site,
                                              plt_dir=os.path.join(f"{self.workdir}/LF_{self.n}"),
                                              wdir=os.path.join(f"{self.workdir}/LF_{self.n}"),
